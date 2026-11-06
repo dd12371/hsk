@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HSK 1–6 Hanzi Master Trainer Pro</title>
+  <!-- HanziWriter für animierte Strichfolge -->
+  <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+
+      /* Status-Farben */
+      --unlearned-border: #cbd5e1;
+      --learning-bg: #eff6ff;
+      --learning-border: #3b82f6;
+      --learning-text: #1d4ed8;
+
+      --learned-bg: #f0fdf4;
+      --learned-border: #22c55e;
+      --learned-text: #15803d;
+
+      /* Tonfarben für Pinyin */
+      --tone-1: #ef4444; /* 1. Ton: Rot */
+      --tone-2: #10b981; /* 2. Ton: Grün */
+      --tone-3: #3b82f6; /* 3. Ton: Blau */
+      --tone-4: #a855f7; /* 4. Ton: Violett */
+      --tone-5: #64748b; /* Neutral: Grau */
+
+      /* Dynamische Kartengröße (px) */
+      --card-size: 105px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #090d16;
+      --surface: #111827;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #1f2937;
+
+      --learning-bg: #172554;
+      --learning-border: #3b82f6;
+      --learning-text: #93c5fd;
+
+      --learned-bg: #052e16;
+      --learned-border: #22c55e;
+      --learned-text: #86efac;
+
+      --tone-5: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding-bottom: 120px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .chinese-font {
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Source Han Sans CN", "SimHei", sans-serif;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-group-header {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .header-btn {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .header-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* STATISTIK-LEISTE */
+    .stats-tray {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pill-total { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .pill-unlearned { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+    .pill-learning { background: var(--learning-bg); color: var(--learning-text); border: 1px solid var(--learning-border); }
+    .pill-learned { background: var(--learned-bg); color: var(--learned-text); border: 1px solid var(--learned-border); }
+
+    /* HSK TABS */
+    .tabs-wrapper {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tabs-nav {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 16px;
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .tab-btn {
+      padding: 10px 14px;
+      border: none;
+      background: none;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      position: relative;
+      white-space: nowrap;
+      transition: color 0.15s;
+    }
+
+    .tab-btn:hover { color: var(--primary); }
+
+    .tab-btn.active {
+      color: var(--primary);
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 3px 3px 0 0;
+    }
+
+    /* FORTSCHRITTSBEREICH */
+    .level-progress-bar-container {
+      max-width: 1400px;
+      margin: 12px auto 0;
+      padding: 0 16px;
+    }
+
+    .level-progress-header {
+      font-size: 0.85rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .level-progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .prog-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .prog-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .prog-track {
+      width: 100%;
+      height: 7px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .prog-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    .fill-unlearned { background: #94a3b8; }
+    .fill-learning { background: #3b82f6; }
+    .fill-learned { background: #22c55e; }
+
+    /* TOOLBAR */
+    .toolbar-wrap {
+      max-width: 1400px;
+      margin: 12px auto;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .filter-buttons, .view-mode-buttons {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .f-btn, .v-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .f-btn.active, .v-btn.active {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+
+    .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-box input {
+      padding: 6px 10px 6px 30px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      outline: none;
+      width: 190px;
+      transition: width 0.2s, border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      width: 240px;
+      border-color: var(--primary);
+    }
+
+    .search-box span {
+      position: absolute;
+      left: 10px;
+      font-size: 0.8rem;
+      opacity: 0.6;
+    }
+
+    .action-toggle-btn {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .action-toggle-btn:hover {
+      border-color: var(--primary);
+    }
+
+    .action-toggle-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* ZOOM BOX */
+    .zoom-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .zoom-box input[type="range"] {
+      width: 65px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .zoom-box input[type="number"] {
+      width: 45px;
+      padding: 2px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+    }
+
+    /* GRID & CARDS */
+    .grid-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(var(--card-size), 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      aspect-ratio: 1;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s ease, box-shadow 0.15s ease, border-color 0.15s;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+      padding: 4px;
+      outline: none;
+    }
+
+    .card:focus-visible {
+      box-shadow: 0 0 0 3px var(--primary);
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-idx {
+      position: absolute;
+      top: 4px;
+      left: 5px;
+      font-size: clamp(0.55rem, calc(var(--card-size) * 0.11), 0.72rem);
+      color: var(--text-muted);
+      opacity: 0.65;
+    }
+
+    .card-hanzi {
+      font-size: calc(var(--card-size) * 0.42);
+      line-height: 1.1;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .card-pinyin-sub {
+      font-size: clamp(0.65rem, calc(var(--card-size) * 0.14), 0.82rem);
+      font-weight: 700;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+    }
+
+    .card-meaning-sub {
+      font-size: clamp(0.55rem, calc(var(--card-size) * 0.11), 0.7rem);
+      color: var(--text-muted);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .card.status-learning {
+      background-color: var(--learning-bg);
+      border-color: var(--learning-border);
+    }
+
+    .card.status-learning .card-hanzi {
+      color: var(--learning-text);
+      font-weight: 600;
+    }
+
+    .card.status-learned {
+      background-color: var(--learned-bg);
+      border-color: var(--learned-border);
+    }
+
+    .card.status-learned .card-hanzi {
+      color: var(--learned-text);
+      font-weight: 600;
+    }
+
+    .selection-active .card:hover {
+      border-color: #6366f1;
+    }
+
+    .card.selected {
+      outline: 3px solid #6366f1;
+      outline-offset: 1px;
+    }
+
+    .card-check {
+      display: none;
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: clamp(12px, calc(var(--card-size) * 0.18), 18px);
+      height: clamp(12px, calc(var(--card-size) * 0.18), 18px);
+      border-radius: 4px;
+      border: 2px solid #94a3b8;
+      background: var(--surface);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .selection-active .card-check { display: flex; }
+
+    .card.selected .card-check {
+      background: #6366f1;
+      border-color: #6366f1;
+    }
+
+    .card.selected .card-check::after {
+      content: '✓';
+      color: #ffffff;
+      font-size: clamp(8px, calc(var(--card-size) * 0.12), 11px);
+      font-weight: bold;
+    }
+
+    /* BATCH BAR */
+    .floating-batch-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(160%);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 16px;
+      border-radius: 14px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 90;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      max-width: 95vw;
+      flex-wrap: wrap;
+    }
+
+    .floating-batch-bar.visible {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .batch-count-txt {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #cbd5e1;
+    }
+
+    .batch-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: transform 0.1s;
+    }
+
+    .batch-btn:active { transform: scale(0.96); }
+    .btn-b-unlearned { background: #475569; color: #ffffff; }
+    .btn-b-learning { background: #2563eb; color: #ffffff; }
+    .btn-b-learned { background: #16a34a; color: #ffffff; }
+    .btn-b-aux { background: #334155; color: #cbd5e1; font-weight: 500; }
+
+    /* TONFARBEN */
+    .tone-1 { color: var(--tone-1) !important; font-weight: 700; }
+    .tone-2 { color: var(--tone-2) !important; font-weight: 700; }
+    .tone-3 { color: var(--tone-3) !important; font-weight: 700; }
+    .tone-4 { color: var(--tone-4) !important; font-weight: 700; }
+    .tone-5 { color: var(--tone-5) !important; }
+
+    /* DETAIL MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: var(--surface);
+      width: 100%;
+      max-width: 450px;
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      transform: translateY(12px) scale(0.97);
+      transition: transform 0.2s ease;
+      position: relative;
+    }
+
+    .modal-overlay.open .modal-box {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      border: none;
+      background: var(--bg);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .modal-nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: all 0.15s;
+      z-index: 5;
+    }
+
+    .modal-nav-arrow:hover {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .modal-nav-prev { left: -46px; }
+    .modal-nav-next { right: -46px; }
+
+    @media (max-width: 600px) {
+      .modal-nav-prev { left: 8px; top: 14px; transform: none; width: 32px; height: 32px; }
+      .modal-nav-next { left: 46px; top: 14px; transform: none; width: 32px; height: 32px; }
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* TIANZIGE STRICHFELD */
+    .stroke-box-wrap {
+      width: 140px;
+      height: 140px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background-image: 
+        linear-gradient(to right, rgba(148, 163, 184, 0.25) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148, 163, 184, 0.25) 1px, transparent 1px);
+      background-size: 70px 70px;
+      background-position: center center;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .stroke-box-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        linear-gradient(45deg, transparent calc(50% - 0.5px), rgba(148, 163, 184, 0.18) 50%, transparent calc(50% + 0.5px)),
+        linear-gradient(-45deg, transparent calc(50% - 0.5px), rgba(148, 163, 184, 0.18) 50%, transparent calc(50% + 0.5px));
+      pointer-events: none;
+    }
+
+    .modal-fallback-hanzi {
+      font-size: 5rem;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stroke-ctrl-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+
+    .stroke-ctrl-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .modal-details-grid {
+      background: var(--bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 12px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 4px;
+    }
+
+    .detail-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .d-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+    .d-val { font-size: 0.95rem; font-weight: 700; color: var(--text); text-align: right; }
+    .d-val.pinyin { font-size: 1.15rem; }
+
+    .status-picker {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .status-pick-btn {
+      padding: 8px 4px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 2px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .pick-unlearned { background: var(--bg); color: var(--text-muted); border-color: var(--border); }
+    .pick-learning { background: var(--learning-bg); color: var(--learning-text); border-color: var(--learning-border); }
+    .pick-learned { background: var(--learned-bg); color: var(--learned-text); border-color: var(--learned-border); }
+
+    .status-pick-btn.active {
+      box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px currentColor;
+    }
+
+    .keyboard-hint {
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    /* FLASHCARD MODUS */
+    .flashcard-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 120;
+      display: none;
+      flex-direction: column;
+      padding: 16px;
+    }
+
+    .flashcard-overlay.open {
+      display: flex;
+    }
+
+    .flashcard-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .flashcard-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .flashcard-card {
+      width: 100%;
+      min-height: 400px;
+      background: var(--surface);
+      border: 3px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      padding: 24px 20px;
+      text-align: center;
+      user-select: none;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .flashcard-card.status-learning {
+      border-color: var(--learning-border);
+      background: linear-gradient(to bottom, var(--learning-bg) 0%, var(--surface) 35%);
+    }
+
+    .flashcard-card.status-learned {
+      border-color: var(--learned-border);
+      background: linear-gradient(to bottom, var(--learned-bg) 0%, var(--surface) 35%);
+    }
+
+    .fc-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .fc-status-badge.status-learning {
+      background: var(--learning-bg);
+      color: var(--learning-text);
+      border-color: var(--learning-border);
+    }
+
+    .fc-status-badge.status-learned {
+      background: var(--learned-bg);
+      color: var(--learned-text);
+      border-color: var(--learned-border);
+    }
+
+    .fc-stroke-container {
+      width: 140px;
+      height: 140px;
+      margin-bottom: 8px;
+    }
+
+    .fc-reveal-box {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .fc-revealed .fc-reveal-box {
+      display: flex;
+    }
+
+    .fc-prompt {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .fc-revealed .fc-prompt {
+      display: none;
+    }
+
+    .flashcard-actions-wrapper {
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .flashcard-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .fc-action-btn {
+      padding: 12px 10px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .fc-action-btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-fc-failed {
+      background: var(--learning-bg);
+      color: var(--learning-text);
+      border-color: var(--learning-border);
+    }
+
+    .btn-fc-passed {
+      background: var(--learned-bg);
+      color: var(--learned-text);
+      border-color: var(--learned-border);
+    }
+
+    .fc-action-btn.active-selected {
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px currentColor;
+    }
+
+    .fc-nav-controls {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .fc-nav-btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .fc-nav-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .fc-nav-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .fc-nav-btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .fc-nav-btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-content">
+      <div class="brand">
+        <h1><span>汉字</span> HSK Master Trainer Pro</h1>
+        <div class="btn-group-header">
+          <button id="btn-toggle-script" class="header-btn" title="Zwischen vereinfachten und traditionellen Schriftzeichen wechseln">
+            Schrift: <span id="lbl-script">简体</span>
+          </button>
+          <button id="btn-toggle-theme" class="header-btn" title="Dunkelmodus umschalten">
+            <span id="theme-icon">🌙</span>
+          </button>
+          <button id="btn-export" class="header-btn" title="Lernstand als JSON sichern">📤 Export</button>
+          <button id="btn-import" class="header-btn" title="Lernstand laden">📥 Import</button>
+          <input type="file" id="file-import-input" accept=".json" style="display:none;">
+        </div>
+      </div>
+
+      <div class="stats-tray">
+        <div class="stat-pill pill-total">Gesamt: <span id="stat-total">0</span></div>
+        <div class="stat-pill pill-unlearned">⚪ <span id="stat-unlearned">0</span></div>
+        <div class="stat-pill pill-learning">🔵 <span id="stat-learning">0</span></div>
+        <div class="stat-pill pill-learned">🟢 <span id="stat-learned">0</span></div>
+      </div>
+    </div>
+
+    <!-- TABS HSK 1 BIS 6 -->
+    <div class="tabs-wrapper">
+      <nav class="tabs-nav" id="hsk-tabs">
+        <button class="tab-btn active" data-hsk="1">HSK 1 (<span class="tab-cnt" data-lvl="1">0</span>)</button>
+        <button class="tab-btn" data-hsk="2">HSK 2 (<span class="tab-cnt" data-lvl="2">0</span>)</button>
+        <button class="tab-btn" data-hsk="3">HSK 3 (<span class="tab-cnt" data-lvl="3">0</span>)</button>
+        <button class="tab-btn" data-hsk="4">HSK 4 (<span class="tab-cnt" data-lvl="4">0</span>)</button>
+        <button class="tab-btn" data-hsk="5">HSK 5 (<span class="tab-cnt" data-lvl="5">0</span>)</button>
+        <button class="tab-btn" data-hsk="6">HSK 6 (<span class="tab-cnt" data-lvl="6">0</span>)</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- FORTSCHRITTSBEREICH -->
+  <div class="level-progress-bar-container">
+    <div class="level-progress-header">
+      <span id="lbl-level-title">HSK 1 Fortschritt:</span>
+    </div>
+    <div class="level-progress-grid">
+      <div class="prog-card">
+        <div class="prog-meta">
+          <span>⚪ Noch nicht gelernt</span>
+          <span id="lvl-unlearned-stat">0 (0%)</span>
+        </div>
+        <div class="prog-track">
+          <div id="lvl-bar-unlearned" class="prog-fill fill-unlearned"></div>
+        </div>
+      </div>
+
+      <div class="prog-card">
+        <div class="prog-meta">
+          <span>🔵 Am Lernen</span>
+          <span id="lvl-learning-stat">0 (0%)</span>
+        </div>
+        <div class="prog-track">
+          <div id="lvl-bar-learning" class="prog-fill fill-learning"></div>
+        </div>
+      </div>
+
+      <div class="prog-card">
+        <div class="prog-meta">
+          <span>🟢 Gelernt</span>
+          <span id="lvl-learned-stat">0 (0%)</span>
+        </div>
+        <div class="prog-track">
+          <div id="lvl-bar-learned" class="prog-fill fill-learned"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar-wrap">
+    <div class="toolbar-row">
+      <div class="filter-buttons">
+        <button class="f-btn active" data-filter="all">Alle</button>
+        <button class="f-btn" data-filter="unlearned">Noch nicht gelernt</button>
+        <button class="f-btn" data-filter="learning">Am Lernen (Blau)</button>
+        <button class="f-btn" data-filter="learned">Gelernt (Grün)</button>
+      </div>
+
+      <div class="view-mode-buttons">
+        <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-right:2px;">Ansicht:</span>
+        <button class="v-btn active" data-mode="hanzi">Hanzi</button>
+        <button class="v-btn" data-mode="pinyin">+ Pīnyīn</button>
+        <button class="v-btn" data-mode="full">+ Bedeutung</button>
+      </div>
+    </div>
+
+    <div class="toolbar-row">
+      <div class="controls-right" style="width: 100%; justify-content: space-between;">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="search-input" placeholder="Suchen (z.B. ni3, Hanzi, DE)...">
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <button id="btn-shuffle" class="action-toggle-btn" title="Zeichen zufällig anordnen">
+            <span>🔀</span> <span id="lbl-shuffle">Mischen</span>
+          </button>
+          <button id="btn-reset-order" class="action-toggle-btn" style="display:none;" title="Standard-Reihenfolge wiederherstellen">
+            ✕ Standard
+          </button>
+
+          <button id="btn-open-flashcards" class="action-toggle-btn" title="Karteikarten-Lernmodus starten">
+            <span>🃏</span> Lernmodus
+          </button>
+
+          <div class="zoom-box" title="Kartengröße in Pixeln anpassen">
+            <span>🔍</span>
+            <input type="range" id="zoom-range" min="60" max="150" value="105" step="5">
+            <input type="number" id="zoom-input" min="60" max="150" value="105" step="5">
+            <span>px</span>
+          </div>
+
+          <button id="toggle-select-mode" class="action-toggle-btn">
+            <span>☑</span> Schnellauswahl
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RASTER DER KARTEN -->
+  <main class="grid-container">
+    <div id="cards-grid" class="character-grid"></div>
+  </main>
+
+  <!-- BATCH STATUS-LEISTE -->
+  <div id="batch-action-bar" class="floating-batch-bar">
+    <div class="batch-count-txt"><span id="batch-selected-num">0</span> ausgewählt</div>
+    <button id="btn-batch-select-all" class="batch-btn btn-b-aux">Alle auswählen</button>
+    <button id="btn-batch-set-unlearned" class="batch-btn btn-b-unlearned">⚪ Ungelernt</button>
+    <button id="btn-batch-set-learning" class="batch-btn btn-b-learning">🔵 Lernen</button>
+    <button id="btn-batch-set-learned" class="batch-btn btn-b-learned">🟢 Gelernt</button>
+  </div>
+
+  <!-- DETAIL MODAL -->
+  <div id="detail-modal" class="modal-overlay">
+    <div class="modal-box">
+      <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+      <button class="modal-nav-arrow modal-nav-prev" id="btn-nav-prev" title="Vorheriges (←)">‹</button>
+      <button class="modal-nav-arrow modal-nav-next" id="btn-nav-next" title="Nächstes (→)">›</button>
+
+      <div class="modal-header">
+        <div class="stroke-box-wrap" id="modal-stroke-box">
+          <div id="m-char-target"></div>
+        </div>
+        <button id="btn-animate-modal" class="stroke-ctrl-btn">▶ Strichfolge animieren</button>
+      </div>
+
+      <div class="modal-details-grid">
+        <div class="detail-item">
+          <span class="d-label">Pīnyīn</span>
+          <span id="m-pinyin" class="d-val pinyin">-</span>
+        </div>
+        <div class="detail-item">
+          <span class="d-label" id="lbl-alt-script">Traditionell (繁體)</span>
+          <span id="m-trad" class="d-val chinese-font">-</span>
+        </div>
+        <div class="detail-item">
+          <span class="d-label">Bedeutung (DE)</span>
+          <span id="m-meaning" class="d-val">-</span>
+        </div>
+      </div>
+
+      <div style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase;">
+        Status setzen:
+      </div>
+      <div class="status-picker">
+        <button class="status-pick-btn pick-unlearned" id="m-set-unlearned">
+          <span>⚪</span><span>(1) Ungelernt</span>
+        </button>
+        <button class="status-pick-btn pick-learning" id="m-set-learning">
+          <span>🔵</span><span>(2) Am Lernen</span>
+        </button>
+        <button class="status-pick-btn pick-learned" id="m-set-learned">
+          <span>🟢</span><span>(3) Gelernt</span>
+        </button>
+      </div>
+
+      <div class="keyboard-hint">
+        Tasten: <b>←/→</b> Blättern &bull; <b>1/2/3</b> Status &bull; <b>Esc</b> Schließen &bull; Auf Handy wischen
+      </div>
+    </div>
+  </div>
+
+  <!-- FLASHCARD LERNMODUS -->
+  <div id="flashcard-overlay" class="flashcard-overlay">
+    <div class="flashcard-top">
+      <span style="font-weight: 700; font-size: 0.9rem;" id="fc-counter">Karte 1 / 100</span>
+      <button id="btn-close-flashcards" class="header-btn">✕ Beenden (Esc)</button>
+    </div>
+
+    <div class="flashcard-center">
+      <div id="flashcard-element" class="flashcard-card">
+        <div id="fc-status-badge" class="fc-status-badge">⚪ Noch nicht gelernt</div>
+
+        <div class="stroke-box-wrap fc-stroke-container" id="fc-stroke-box">
+          <div id="fc-char-target"></div>
+        </div>
+        <div class="fc-prompt">Tippen oder Leertaste drücken zum Aufdecken</div>
+        
+        <div class="fc-reveal-box">
+          <div id="fc-pinyin" style="font-size: 1.45rem; margin-bottom: 2px;"></div>
+          <div id="fc-meaning" style="font-size: 1.15rem; font-weight: 600;"></div>
+          <div id="fc-alt" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;"></div>
+          <button id="btn-animate-fc" class="stroke-ctrl-btn" style="margin-top:8px;">▶ Striche abspielen</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flashcard-actions-wrapper">
+      <div class="flashcard-actions">
+        <button id="fc-btn-failed" class="fc-action-btn btn-fc-failed" title="Status auf 'Am Lernen' setzen (Taste: 1)">
+          <span>🔵</span><span>(1) Nicht gekonnt</span>
+        </button>
+        <button id="fc-btn-passed" class="fc-action-btn btn-fc-passed" title="Status auf 'Gelernt' setzen (Taste: 2)">
+          <span>🟢</span><span>(2) Gewusst!</span>
+        </button>
+      </div>
+
+      <div class="fc-nav-controls">
+        <button id="fc-btn-prev" class="fc-nav-btn" title="Vorherige Karte (Taste: ←)">
+          <span>←</span> <span>Vorherige (←)</span>
+        </button>
+        <button id="fc-btn-flip" class="fc-nav-btn" title="Aufdecken oder Zudecken (Taste: Leertaste)">
+          <span>🔄</span> <span>Aufdecken</span>
+        </button>
+        <button id="fc-btn-next" class="fc-nav-btn fc-nav-btn-primary" title="Nächste Karte (Taste: →)">
+          <span>Nächste (→)</span> <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       1. EXAKTE HSK 1 - 6 ZEICHENLISTEN (REIHENFOLGE DER OFFIZIELLEN SYLLABUS)
+       ========================================================================== */
+    const HSK_CHARS = {
+      1: "爱八爸吧白百班半包杯本边便病不菜茶常唱超车吃出穿床打大蛋到道得的弟第点电东都读对多儿二饭房飞非分服高哥歌个给工公狗关贵国果还孩汉好号喝和很后候话欢回会火机鸡几家间见件叫姐今九觉开看可客课口块来老了冷里两亮零六妈吗买卖忙猫么没妹们米面名明哪那奶男脑呢能你年您牛女朋漂苹七期起气千前钱请去热人认日三商上少谁什生师十时识士市事视是手书水睡说司四岁他它她太题天条听同外玩晚喂文问我五午西息习喜系下先现想小校些写谢新星兴休学雪样要也一衣医宜以椅影友有雨语元院月再在早怎找这真正知只中钟住桌子字租昨作坐做",
+      2: "啊帮备比笔表别步场词次从错但地等店懂动啡夫告跟馆过黑红花画坏己记交教介进近经睛酒就咖考裤快篮乐累离留楼路旅绿慢每门拿鸟旁跑票妻情晴球然让肉色绍身始试室舒思送诉虽所疼踢体跳铁头完万网往忘望为位舞希洗笑姓颜眼药爷已意因阴泳游右鱼远运站长丈周着准自走足最左",
+      3: "阿矮安把般搬板办饱报北被必变遍宾冰才参草层查差尝衬成城迟持初除楚处船春聪答带担单当灯典调定丢冬短段锻朵饿而耳发法方放风封附复该概感干刚糕根更共故顾瓜刮怪惯海害合河乎护化环换黄婚活或激级极急季绩加假坚检简健讲蕉角饺脚较接街节结解界借斤净静境久旧居句据决卡康渴刻空哭筷矿蓝礼李理力历脸练炼凉辆聊料邻凌马码满毛冒末目南难努爬怕拍盘胖啤片平瓶其奇骑汽铅且轻清秋求区趣全泉裙容如赛伞扫沙山衫烧勺声实史世适收受瘦叔束树数刷双算糖特梯提甜挺突图腿碗卫闻屋务物戏夏鲜相香箱响向像鞋心信行熊须需选牙言演羊阳养业页姨议易音银饮应迎用邮又于羽育遇园员愿越咱脏澡择展张照者直纸终种重主助注总嘴",
+      4: "按案傲巴败棒保抱背倍笨鼻毕标饼并播博膊部擦猜材彩餐操厕察产厂晨诚乘程厨础窗吹此粗村存达待袋戴弹刀导倒登低底递掉订堵肚度断队顿尔翻烦反费份奋丰否肤符幅福父付负傅富改赶敢钢膏胳格各功供购够估姑鼓挂观管光广逛规咳寒喊汗航何盒贺厚呼忽虎互户划怀悔伙货获圾积基及即籍计纪技际济既继寄价减建键江将奖降郊骄巾金仅尽紧禁京惊精景警竞竟镜究举拒具剧距聚绝烤科棵克肯恐苦况困垃拉辣懒浪厉丽励利例俩连联谅量列林龄另流乱论落律虑麻馒漫帽貌美梦迷密免秒民命默母慕耐恼闹内嗯娘农弄暖偶排牌判乓陪批皮脾篇频品聘乒评泼破葡普戚弃签歉强敲桥巧切亲琴青庆取缺却确染扰任扔仍入散森伤稍社摄申深甚省剩失拾食使氏示式柿释匙首授售输熟暑术帅顺硕死松嗽速塑酸随孙台抬态谈汤躺趟萄讨套堂填厅庭停通童桶痛土推脱袜危微围味温污无误吸悉惜细咸险线羡乡详项象消效辛醒幸性兄修羞秀许序续血压亚烟严研盐厌验扬洋邀钥叶夜疑艺忆译谊引印赢永勇优幽尤由油愉与预原约阅云允杂仔暂则责增章账招折针争整证之支汁值职植止址指至志质众洲祝著专转赚装资族组尊座",
+      5: "哎唉暗熬版扮伴膀傍薄宝暴贝彼币闭避拨玻补布裁采藏册测曾叉插拆倡朝吵炒彻沉称承橙池尺齿翅冲充虫宠抽丑臭触传创辞刺促催措代胆旦淡挡档蹈敌蝶冻洞斗豆独堆吨盾躲乏罚番繁返泛范防仿访肥纷疯扶佛府腐妇副盖搞革隔恭贡沟构古固冠瑰柜滚锅裹哈含憾衡猴胡湖蝴糊华滑缓灰挥恢汇惠慧祸肌疾集辑挤迹佳嘉甲驾架艰捡剪荐渐践浆浇阶届谨敬救局橘巨捐卷军均靠颗控扣库宽款狂亏昆扩括览郎劳姥泪类厘梨璃立恋良粮疗烈临灵铃领令浏龙漏陆录碌逻络率骂矛玫媒魅秘眠描敏摸模陌漠某木幕奈念浓哦欧派培赔配盆碰匹骗拼凭屏婆齐企器浅欠墙抢悄茄勤穷曲趋权劝群燃绕忍荣软润弱洒傻厦晒删扇善擅赏蛇舍设伸神慎升胜诗施湿石驶似势饰守殊蔬属鼠述摔税私搜俗肃素宿碎损缩索锁桃替挑贴统投途兔团退拖弯威违唯维伟尾未胃慰稳卧握伍武雾夕析席闲显县限献厢享橡销肖协胁斜欣形型虚绪宣寻询训迅押鸭呀延沿腰摇咬依移遗乙亿义益营映硬拥悠犹幼余娱玉域喻寓豫圆源怨载赞糟造赠炸摘窄占战涨掌召哲珍诊阵震征挣政织执制治致智置猪竹逐煮筑抓状撞追咨姿紫综阻醉遵",
+      6: "碍岸昂拔摆拜榜胞爆悲辈奔逼壁臂编兵脖捕财踩残仓侧策柴肠偿畅抄嘲潮撤臣尘趁撑呈惩崇愁筹储串闯垂纯瓷匆醋脆寸挫搭呆贷耽诞岛稻德滴抵帝吊钓跌顶栋逗督毒渡端蹲夺额恶帆凡犯妨肪肺氛粉愤峰蜂奉浮辅赋覆尬肝尴岗港稿割攻宫巩孤股骨拐官贯罐归龟轨跪棍涵罕旱毫豪耗核嘿痕狠恨横宏虹洪壶幻患皇绘混惑击饥吉寂夹嫁稼尖肩监兼剑鉴箭酱胶椒焦杰洁捷截戒劲井颈径纠舅菊矩俱惧菌刊砍抗枯酷夸馈阔啦赖兰拦栏烂狼廊朗牢雷粒怜链梁晾劣淋笼露轮履略蚂嘛埋迈麦盲贸眉梅煤弥蜜棉勉妙灭摩寞纳泥拟扭怒诺盼庞抛泡佩喷捧披疲飘贫坡迫扑朴铺欺棋旗启恰牵谦潜枪腔瞧倾屈渠娶圈券壤绒融柔撒塞嗓丧杀刹鲨筛闪尚舌射涉审甥盛狮寿薯竖漱衰瞬艘塔踏汰坛探碳烫掏逃淘添田铜筒偷透徒吐吞托挖娃哇歪顽亡王委谓沃乌晰媳吓嫌陷祥宵歇谐携械薪胸雄袖叙蓄旋旬循讯讶淹炎艳宴央仰氧痒遥野液仪蚁异抑疫姻隐英婴颖涌忧予浴欲裕誉援跃晕匀孕灾遭噪燥扎宅粘崭仗障枕镇睁症枝脂侄殖秩肿州粥骤珠株诸砖妆庄壮椎捉棕踪粽奏祖钻罪"
+    };
+
+    /* ==========================================================================
+       2. WÖRTERBUCH & STRUKTURIERTE DEFINITIONEN
+       ========================================================================== */
+    const HANZI_DICT = {
+      // HSK 1 (246 Zeichen komplett nach neuer Syllabus)
+      "爱":["ài","愛","lieben, gernhaben"],"八":["bā","八","acht (8)"],"爸":["bà","爸","Vater, Papa"],"吧":["ba","吧","Vermutungspartikel"],"白":["bái","白","weiß, umsonst"],"百":["bǎi","百","hundert (100)"],"班":["bān","班","Klasse, Schicht"],"半":["bàn","半","halb, Hälfte"],"包":["bāo","包","Tasche, einpacken"],"杯":["bēi","杯","Tasse, Glas"],"本":["běn","本","Buch, ZEW für Bücher"],"边":["biān","邊","Seite, Rand"],"便":["biàn","便","bequem, billig"],"病":["bìng","病","Krankheit, krank"],"不":["bù","不","nicht, nein"],"菜":["cài","菜","Gericht, Gemüse"],"茶":["chá","茶","Tee"],"常":["cháng","常","oft, gewöhnlich"],"唱":["chàng","唱","singen"],"超":["chāo","超","übertreffen, super"],"车":["chē","車","Fahrzeug, Auto"],"吃":["chī","吃","essen"],"出":["chū","出","hinausgehen, heraus"],"穿":["chuān","穿","anziehen, tragen"],"床":["chuáng","床","Bett"],"打":["dǎ","打","schlagen, anrufen"],"大":["dà","大","groß"],"蛋":["dàn","蛋","Ei"],"到":["dào","到","ankommen, bis"],"道":["dào","道","Weg, Pfad, sagen, Methode"],"得":["de / dé","得","bekommen, Partikel"],"的":["de","的","Attributpartikel"],"弟":["dì","弟","jüngerer Bruder"],"第":["dì","第","Präfix für Ordinalzahlen"],"点":["diǎn","點","Punkt, Uhr, ein wenig"],"电":["diàn","電","Elektrizität, Strom"],"东":["dōng","東","Osten"],"都":["dōu","都","alle, beide"],"读":["dú","讀","lesen, vorlesen"],"对":["duì","對","richtig, gegenüber"],"多":["duō","多","viel, wie viel"],"儿":["ér","兒","Sohn, Diminutiv"],"二":["èr","二","zwei (2)"],"饭":["fàn","飯","Mahlzeit, Reis"],"房":["fáng","房","Haus, Zimmer"],"飞":["fēi","飛","fliegen"],"非":["fēi","非","nicht, Un- (非常)"],"分":["fēn","分","Minute, teilen, Cent"],"服":["fú","服","Kleidung, dienen"],"高":["gāo","高","hoch, groß"],"哥":["gē","哥","älterer Bruder"],"歌":["gē","歌","Lied, Song"],"个":["gè","個","allgem. Zähleinheitswort"],"给":["gěi","給","geben, für"],"工":["gōng","工","Arbeit, Arbeiter"],"公":["gōng","公","öffentlich, männlich"],"狗":["gǒu","狗","Hund"],"关":["guān","關","schließen, ausschalten"],"贵":["guì","貴","teuer, wertvoll"],"国":["guó","國","Land, Staat"],"果":["guǒ","果","Frucht, Resultat"],"还":["hái","還","noch, außerdem"],"孩":["hái","孩","Kind"],"汉":["hàn","漢","chinesisch (Han)"],"好":["hǎo","好","gut, schön"],"号":["hào","號","Nummer, Tag, Datum"],"喝":["hē","喝","trinken"],"和":["hé","和","und, mit, friedlich"],"很":["hěn","很","sehr"],"后":["hòu","後","hinter, danach"],"候":["hòu","候","warten, Zeitmoment"],"话":["huà","話","Rede, Sprache, Wort"],"欢":["huān","歡","fröhlich (喜欢)"],"回":["huí","回","zurückkehren"],"会":["huì","會","können (gelernt), Treffen"],"火":["huǒ","火","Feuer"],"机":["jī","機","Maschine, Flugzeug"],"鸡":["jī","雞","Huhn, Hähnchen"],"几":["jǐ","幾","wie viele?, einige"],"家":["jiā","家","Familie, Zuhause"],"间":["jiān","間","Raum, Zimmer"],"见":["jiàn","見","sehen, treffen"],"件":["jiàn","件","Stück (ZEW Kleidung)"],"叫":["jiào","叫","heißen, rufen"],"姐":["jiě","姐","ältere Schwester"],"今":["jīn","今","heute, jetzt"],"九":["jiǔ","九","neun (9)"],"觉":["jué / jiào","覺","fühlen / Schlaf"],"开":["kāi","開","öffnen, fahren, starten"],"看":["kàn","看","sehen, schauen, lesen"],"可":["kě","可","können, aber"],"客":["kè","客","Gast, Besucher"],"课":["kè","課","Unterricht, Lektion"],"口":["kǒu","口","Mund, Öffnung"],"块":["kuài","塊","Stück, Währung (Yuan)"],"来":["lái","來","kommen"],"老":["lǎo","老","alt, ehrwürdig"],"了":["le","了","Aspektpartikel"],"冷":["lěng","冷","kalt"],"里":["lǐ","裏","drinnen, innen"],"两":["liǎng","兩","zwei (bei Zählwörtern)"],"亮":["liàng","亮","hell, glänzend"],"零":["líng","零","null (0)"],"六":["liù","六","sechs (6)"],"妈":["mā","媽","Mutter, Mama"],"吗":["ma","嗎","Fragepartikel (ja/nein)"],"买":["mǎi","買","kaufen"],"卖":["mài","賣","verkaufen"],"忙":["máng","忙","beschäftigt"],"猫":["māo","貓","Katze"],"么":["me","麼","Partikel (什么)"],"没":["méi","沒","nicht haben, verneinen"],"妹":["mèi","妹","jüngere Schwester"],"们":["men","們","Pluralsuffix Personen"],"米":["mǐ","米","Reis, Meter"],"面":["miàn","麵","Nudeln, Gesicht, Seite"],"名":["míng","名","Name, Ruhm"],"明":["míng","明","hell, klar (morgen)"],"哪":["nǎ","哪","welche(r/s)?"],"那":["nà","那","jene(r/s), das dort"],"奶":["nǎi","奶","Milch, Großmutter"],"男":["nán","男","Mann, männlich"],"脑":["nǎo","腦","Gehirn"],"呢":["ne","呢","Rückfragepartikel"],"能":["néng","能","können, imstande sein"],"你":["nǐ","你","du, dir, dich"],"年":["nián","年","Jahr"],"您":["nín","您","Sie (höflich)"],"牛":["niú","牛","Kuh, Rind"],"女":["nǚ","女","Frau, weiblich"],"朋":["péng","朋","Freund (朋友)"],"漂":["piào","漂","hübsch (漂亮)"],"苹":["píng","蘋","Apfel (苹果)"],"七":["qī","七","sieben (7)"],"期":["qī","期","Periode, Woche"],"起":["qǐ","起","aufstehen, beginnen"],"气":["qì","氣","Luft, Gas, Wetter"],"千":["qiān","千","tausend (1000)"],"前":["qián","前","vorne, früher, vor"],"钱":["qián","錢","Geld"],"请":["qǐng","請","bitte, einladen"],"去":["qù","去","gehen, weggehen"],"热":["rè","熱","heiß, Wärme"],"人":["rén","人","Mensch, Person"],"认":["rèn","認","erkennen (认识)"],"日":["rì","日","Sonne, Tag, Datum"],"三":["sān","三","drei (3)"],"商":["shāng","商","Handel, Geschäft"],"上":["shàng","上","oben, hinaufgehen"],"少":["shǎo","少","wenig, selten"],"谁":["shéi","誰","wer?"],"什":["shén","什","was? (什么)"],"生":["shēng","生","gebären, Leben, Schüler"],"师":["shī","師","Lehrer, Meister"],"十":["shí","十","zehn (10)"],"时":["shí","時","Zeit, Stunde"],"识":["shí","識","kennen, wissen"],"士":["shì","士","Gelehrter, Person"],"市":["shì","市","Stadt, Markt"],"事":["shì","事","Sache, Angelegenheit"],"视":["shì","視","sehen, betrachten"],"是":["shì","是","sein (Verb)"],"手":["shǒu","手","Hand"],"书":["shū","書","Buch, schreiben"],"水":["shuǐ","水","Wasser"],"睡":["shuì","睡","schlafen"],"说":["shuō","說","sprechen, sagen"],"司":["sī","司","leiten, Firma (公司)"],"四":["sì","四","vier (4)"],"岁":["suì","歲","Lebensjahre, alt"],"他":["tā","他","er, ihn, ihm"],"它":["tā","它","es (Dinge / Tiere)"],"她":["tā","她","sie, ihr (weiblich)"],"太":["tài","太","zu sehr, äußerst"],"题":["tí","題","Thema, Frage, Aufgabe"],"天":["tiān","天","Himmel, Tag"],"条":["tiáo","條","Streifen, ZEW für langes"],"听":["tīng","聽","hören, lauschen"],"同":["tóng","同","gleich, gemeinsam"],"外":["wài","外","außen, fremd"],"玩":["wán","玩","spielen, Spaß haben"],"晚":["wǎn","晚","Abend, spät"],"喂":["wèi","餵","hallo?, füttern"],"文":["wén","文","Schrift, Sprache, Kultur"],"问":["wèn","問","fragen"],"我":["wǒ","我","ich, mein, mir"],"五":["wǔ","五","fünf (5)"],"午":["wǔ","午","Mittag"],"西":["xī","西","Westen"],"息":["xī","息","Atem, ausruhen (休息)"],"习":["xí","習","üben, lernen"],"喜":["xǐ","喜","mögen, Freude"],"系":["xì","係","verbinden, System"],"下":["xià","下","unten, heruntergehen"],"先":["xiān","先","zuerst, früher"],"现":["xiàn","現","jetzt, erscheinen"],"想":["xiǎng","想","denken, vermissen, wollen"],"小":["xiǎo","小","klein"],"校":["xiào","校","Schule"],"些":["xiē","些","einige, ein paar"],"写":["xiě","寫","schreiben"],"谢":["xiè","謝","danken (谢谢)"],"新":["xīn","新","neu"],"星":["xīng","星","Stern (星期 Woche)"],"兴":["xìng","興","Freude (高兴)"],"休":["xiū","休","ausruhen"],"学":["xué","學","lernen, studieren, Fach"],"雪":["xuě","雪","Schnee"],"样":["yàng","樣","Art, Weise, Aussehen"],"要":["yào","要","wollen, müssen, werden"],"也":["yě","也","auch, ebenfalls"],"一":["yī","一","eins (1)"],"衣":["yī","衣","Kleidung"],"医":["yī","醫","Medizin, Arzt"],"宜":["yí","宜","passend, günstig"],"以":["yǐ","以","mittels, gemäß (可以)"],"椅":["yǐ","椅","Stuhl"],"影":["yǐng","影","Schatten, Film (电影)"],"友":["yǒu","友","Freund"],"有":["yǒu","有","haben, existieren"],"雨":["yǔ","雨","Regen"],"语":["yǔ","語","Sprache, gesprochenes Wort"],"元":["yuán","元","Yuan (Währung)"],"院":["yuàn","院","Institut, Hof (医院)"],"月":["yuè","月","Mond, Monat"],"再":["zài","再","wieder, nochmals"],"在":["zài","在","sich befinden, anwesend"],"早":["zǎo","早","früh, Morgen"],"怎":["zěn","怎","wie? (怎么)"],"找":["zhǎo","找","suchen, Wechselgeld"],"这":["zhè","這","dies(e/er/es), hier"],"真":["zhēn","真","wirklich, echt, wahrhaftig"],"正":["zhèng","正","gerade, exakt (正在)"],"知":["zhī","知","wissen, kennen"],"只":["zhǐ / zhī","只","nur / ZEW Tiere"],"中":["zhōng","中","Mitte, Zentrum"],"钟":["zhōng","鐘","Glocke, Uhrzeit"],"住":["zhù","住","wohnen, leben"],"桌":["zhuō","桌","Tisch"],"子":["zǐ","子","Kind, Nomen-Suffix"],"字":["zì","字","Schriftzeichen, Wort"],"租":["zū","租","mieten, leihen"],"昨":["zuó","昨","gestern"],"作":["zuò","作","tun, Werk (工作)"],"坐":["zuò","坐","sitzen, fahren mit"],"做":["zuò","做","machen, tun, herstellen"],
+
+      // HSK 2 (125 Zeichen)
+      "啊":["a","啊","Ausrufepartikel"],"帮":["bāng","幫","helfen"],"备":["bèi","備","vorbereiten (准备)"],"比":["bǐ","比","vergleichen, als"],"笔":["bǐ","筆","Stift, Schreibgerät"],"表":["biǎo","錶","Uhr, Tabelle, Liste"],"别":["bié","別","nicht sollen, andere"],"步":["bù","步","Schritt (跑步 rennen)"],"场":["chǎng","場","Platz, Szene, Feld"],"词":["cí","詞","Wort, Vokabel"],"次":["cì","次","Mal (Häufigkeit)"],"从":["cóng","從","von ... aus, seit"],"错":["cuò","錯","falsch, Fehler"],"但":["dàn","但","aber, jedoch"],"地":["de / dì","地","Partikel / Boden, Erde"],"等":["děng","等","warten, Rang, usw."],"店":["diàn","店","Laden, Geschäft"],"懂":["dǒng","懂","verstehen, begreifen"],"动":["dòng","動","bewegen (运动 Sport)"],"啡":["fēi","啡","Kaffee (咖啡)"],"夫":["fū","夫","Ehemann (丈夫)"],"告":["gào","告","mitteilen (告诉)"],"跟":["gēn","跟","mit, folgen"],"馆":["guǎn","館","Gebäude, Halle, Pavillon"],"过":["guò","過","vergehen, vorbeigehen"],"黑":["hēi","黑","schwarz, finster"],"红":["hóng","紅","rot"],"花":["huā","花","Blume, ausgeben"],"画":["huà","畫","malen, zeichnen, Bild"],"坏":["huài","壞","schlecht, kaputt"],"己":["jǐ","己","selbst (自己)"],"记":["jì","記","erinnern, notieren"],"交":["jiāo","交","übergeben, Freundschaft"],"教":["jiào","教","lehren, unterrichten"],"介":["jiè","介","vermitteln (介绍)"],"进":["jìn","進","eintreten, hineingehen"],"近":["jìn","近","nah, nahegelegen"],"经":["jīng","經","bereits (已经), durchlaufen"],"睛":["jing","睛","Auge (眼睛)"],"酒":["jiǔ","酒","Alkohol, Wein, Schnaps"],"就":["jiù","就","eben, genau, sofort"],"咖":["kā","咖","Kaffee (咖啡)"],"考":["kǎo","考","prüfen (考试)"],"裤":["kù","褲","Hose (裤子)"],"快":["kuài","快","schnell, bald"],"篮":["lán","籃","Korb (篮球)"],"乐":["lè / yuè","樂","fröhlich / Musik"],"累":["lèi","累","müde, erschöpft"],"离":["lí","離","entfernt von, verlassen"],"留":["liú","留","bleiben, hinterlassen"],"楼":["lóu","樓","Gebäude, Stockwerk"],"路":["lù","路","Weg, Straße"],"旅":["lǚ","旅","reisen (旅游)"],"绿":["lǜ","綠","grün"],"慢":["màn","慢","langsam"],"每":["měi","每","jede(r/s)"],"门":["mén","門","Tür, Tor"],"拿":["ná","拿","nehmen, halten"],"鸟":["niǎo","鳥","Vogel"],"旁":["páng","旁","Seite, neben (旁边)"],"跑":["pǎo","跑","laufen, rennen"],"票":["piào","票","Fahrkarte, Ticket"],"妻":["qī","妻","Ehefrau (妻子)"],"情":["qíng","情","Gefühl, Sachlage (事情)"],"晴":["qíng","晴","sonnig, heiter"],"球":["qiú","球","Ball, Kugel (足球)"],"然":["rán","然","so sein (然后, 当然)"],"让":["ràng","讓","lassen, abtreten"],"肉":["ròu","肉","Fleisch"],"色":["sè","色","Farbe (颜色)"],"绍":["shào","紹","vorstellen (介绍)"],"身":["shēn","身","Körper (身体)"],"始":["shǐ","始","beginnen (开始)"],"试":["shì","試","probieren, Versuch"],"室":["shì","室","Raum, Zimmer (教室)"],"舒":["shū","舒","gemütlich (舒服)"],"思":["sī","思","denken, Sinn (意思)"],"送":["sòng","送","schenken, bringen"],"诉":["sù","訴","berichten, klagen (告诉)"],"虽":["suī","雖","obwohl (虽然)"],"所":["suǒ","所","Ort, Stelle (所以)"],"疼":["téng","疼","Schmerz, wehtun"],"踢":["tī","踢","treten (踢足球)"],"体":["tǐ","體","Körper, Gestalt"],"跳":["tiào","跳","springen, hüpfen"],"铁":["tiě","鐵","Eisen, Metro (地铁)"],"头":["tóu","頭","Kopf, Beginn"],"完":["wán","完","vollenden, fertig"],"万":["wàn","萬","zehntausend (10.000)"],"网":["wǎng","網","Netz, Internet"],"往":["wǎng","往","in Richtung, nach"],"忘":["wàng","忘","vergessen"],"望":["wàng","望","hoffen, blicken (希望)"],"为":["wèi / wéi","為","wegen, für / handeln"],"位":["wèi","位","Höflichkeits-ZEW Personen"],"舞":["wǔ","舞","tanzen, Tanz"],"希":["xī","希","hoffen, selten"],"洗":["xǐ","洗","waschen, reinigen"],"笑":["xiào","笑","lachen, lächeln"],"姓":["xìng","姓","Nachname, heißen"],"颜":["yán","顏","Farbe, Antlitz"],"眼":["yǎn","眼","Auge (眼睛)"],"药":["yào","藥","Medikament, Arznei"],"爷":["yé","爺","Großvater väterlicherseits"],"已":["yǐ","已","bereits, schon (已经)"],"意":["yì","意","Bedeutung, Wille"],"因":["yīn","因","Ursache, weil (因为)"],"阴":["yīn","陰","bedeckt, schattig, Yin"],"泳":["yǒng","泳","schwimmen (游泳)"],"游":["yóu","遊","reisen, schwimmen"],"右":["yòu","右","rechts"],"鱼":["yú","魚","Fisch"],"远":["yuǎn","遠","weit, entfernt"],"运":["yùn","運","bewegen, transportieren"],"站":["zhàn","站","stehen, Station, Haltestelle"],"长":["cháng / zhǎng","長","lang / wachsen, älter"],"丈":["zhàng","丈","Ehemann (丈夫)"],"周":["zhōu","周","Woche, Umlauf"],"着":["zhe","著","Verlaufspartikel (Zustand)"],"准":["zhǔn","準","genau (准备 bereit)"],"自":["zì","自","selbst, von ... her"],"走":["zǒu","走","gehen, fortgehen"],"足":["zú","足","Fuß, genügen (足球)"],"最":["zuì","最","am meisten (Superlativ)"],"左":["zuǒ","左","links"],
+
+      // HSK 3 (284 Zeichen)
+      "阿":["ā","阿","Präfix für Namen"],"矮":["ǎi","矮","niedrig, klein"],"安":["ān","安","Frieden, sicher"],"把":["bǎ","把","nehmen, ZEW Bündel"],"般":["bān","般","Art, Weise (一般)"],"搬":["bān","搬","umziehen, tragen"],"板":["bǎn","板","Brett, Platte"],"办":["bàn","辦","erledigen, tun"],"饱":["bǎo","飽","satt"],"报":["bào","報","Zeitung, berichten"],"北":["běi","北","Norden"],"被":["bèi","被","Passivpartikel, Decke"],"必":["bì","必","müssen, gewiss (必须)"],"变":["biàn","變","verändern, werden"],"遍":["biàn","遍","Mal (vollständig durch)"],"宾":["bīn","賓","Gast (宾馆 Hotel)"],"冰":["bīng","冰","Eis"],"才":["cái","才","erst, Talent"],"参":["cān","參","teilnehmen (参加)"],"草":["cǎo","草","Gras"],"层":["céng","層","Stockwerk, Schicht"],"查":["chá","查","prüfen, nachschlagen"],"差":["chà","差","schlecht, fehlen"],"尝":["cháng","嘗","probieren, kosten"],"衬":["chèn","襯","Hemd, Unterkleidung"],"成":["chéng","成","werden, gelingen"],"城":["chéng","城","Stadt, Mauer"],"迟":["chí","遲","spät (迟到 sich verspäten)"],"持":["chí","持","halten, unterstützen"],"初":["chū","初","Anfang, Beginn"],"除":["chú","除","außer, beseitigen"],"楚":["chǔ","楚","klar (清楚)"],"处":["chù","處","Ort, Stelle, Abteilung"],"船":["chuán","船","Boot, Schiff"],"春":["chūn","春","Frühling"],"聪":["cōng","聰","klug (聪明)"],"答":["dá","答","antworten (回答)"],"带":["dài","帶","mitbringen, Band"],"担":["dān","擔","sorgen (担心)"],"单":["dān","單","einzeln, Liste"],"当":["dāng","當","als ... arbeiten, damals"],"灯":["dēng","燈","Lampe, Licht"],"典":["diǎn","典","Wörterbuch, Norm"],"调":["tiáo","調","einstellen, Melodie"],"定":["dìng","定","bestimmen, sicher"],"丢":["diū","丟","verlieren, wegwerfen"],"冬":["dōng","冬","Winter"],"短":["duǎn","短","kurz"],"段":["duàn","段","Abschnitt, Teil"],"锻":["duàn","鍛","schmieden, trainieren"],"朵":["duǒ","朵","ZEW Blumen / Wolken"],"饿":["è","餓","hungrig"],"而":["ér","而","und, aber, sondern"],"耳":["ěr","耳","Ohr"],"发":["fā","發","senden, entstehen"],"法":["fǎ","法","Gesetz, Methode"],"方":["fāng","方","Richtung, Quadrat"],"放":["fàng","放","legen, loslassen"],"风":["fēng","風","Wind"],"封":["fēng","封","versiegeln, ZEW Briefe"],"附":["fù","附","nahebei (附近)"],"复":["fù","複","wiederholen (复习)"],"该":["gāi","該","sollen, gebühren"],"概":["gài","概","allgemein (大概)"],"感":["gǎn","感","fühlen, Gefühl"],"干":["gān / gàn","乾 / 幹","trocken / machen"],"刚":["gāng","剛","gerade eben"],"糕":["gāo","糕","Kuchen (蛋糕)"],"根":["gēn","根","Wurzel, Basis"],"更":["gèng","更","noch mehr, weiter"],"共":["gòng","共","gemeinsam (一共)"],"故":["gù","故","Grund, Ursache (故事)"],"顾":["gù","顧","achten auf, Kunde"],"瓜":["guā","瓜","Melone (西瓜)"],"刮":["guā","刮","wehen, rasieren"],"怪":["guài","怪","seltsam, beschuldigen"],"惯":["guàn","慣","gewohnt (习惯)"],"海":["hǎi","海","Meer, Ozean"],"害":["hài","害","schaden, Angst haben"],"合":["hé","合","passen, zusammen"],"河":["hé","河","Fluss"],"乎":["hū","乎","fast (几乎)"],"护":["hù","護","schützen (护士 Pfleger)"],"化":["huà","化","verändern, -isieren"],"环":["huán","環","Ring, Umwelt (环境)"],"换":["huàn","換","wechseln, tauschen"],"黄":["huáng","黃","gelb"],"婚":["hūn","婚","Heirat, Ehe (结婚)"],"活":["huó","活","leben, lebendig"],"或":["huò","或","oder (或者)"],"激":["jī","激","aufregen, Begeisterung"],"级":["jí","級","Stufe, Klasse (年级)"],"极":["jí","極","äußerst, Pol"],"急":["jí","急","eilig, besorgt"],"季":["jì","季","Jahreszeit (季节)"],"绩":["jì","績","Leistung (成绩)"],"加":["jiā","加","hinzufügen, plus"],"假":["jiǎ / jià","假","falsch / Ferien"],"坚":["jiān","堅","fest, beharrlich"],"检":["jiǎn","檢","prüfen (检查)"],"简":["jiǎn","簡","einfach (简单)"],"健":["jiàn","健","gesund (健康)"],"讲":["jiǎng","講","erzählen, vortragen, sprechen"],"蕉":["jiāo","蕉","Banane (香蕉)"],"角":["jiǎo","角","Winkel, Horn, 10 Cent"],"饺":["jiǎo","餃","Teigtasche (饺子)"],"脚":["jiǎo","腳","Fuß"],"较":["jiào","較","verhältnismäßig, eher"],"接":["jiē","接","empfangen, abholen"],"街":["jiē","街","Straße"],"节":["jié","節","Fest, Feiertag, ZEW Stunde"],"结":["jié","結","binden, beenden (结婚)"],"解":["jiě","解","lösen, verstehen (解决)"],"界":["jiè","界","Welt, Grenze (世界)"],"借":["jiè","借","leihen, borgen"],"斤":["jīn","斤","Pfund (500g)"],"净":["jìng","淨","sauber, rein (干净)"],"静":["jìng","靜","ruhig, still (安静)"],"境":["jìng","境","Grenze, Umgebung"],"久":["jiǔ","久","lange Zeit"],"旧":["jiù","舊","alt, gebraucht"],"居":["jū","居","wohnen (邻居 Nachbar)"],"句":["jù","句","Satz"],"据":["jù","據","gemäß, nach (根据)"],"决":["jué","決","entscheiden (决定)"],"卡":["kǎ","卡","Karte, stoppen"],"康":["kāng","康","Gesundheit (健康)"],"渴":["kě","渴","durstig"],"刻":["kè","刻","Viertelstunde, schnitzen"],"空":["kōng / kòng","空","Luft, leer / Freizeit"],"哭":["kū","哭","weinen"],"筷":["kuài","筷","Essstäbchen (筷子)"],"矿":["kuàng","礦","Erz, Mineral (矿泉水)"],"蓝":["lán","藍","blau"],"礼":["lǐ","禮","Höflichkeit, Geschenk"],"李":["lǐ","李","Pflaume, Nachname Li"],"理":["lǐ","理","Logik, managen"],"力":["lì","力","Kraft, Energie"],"历":["lì","歷","Kalender, Geschichte"],"脸":["liǎn","臉","Gesicht"],"练":["liàn","練","üben (练习)"],"炼":["liàn","煉","trainieren, veredeln"],"凉":["liáng","涼","kühl, erfrischend"],"辆":["liàng","輛","ZEW für Fahrzeuge"],"聊":["liáo","聊","plaudern (聊天)"],"料":["liào","料","Material (材料)"],"邻":["lín","鄰","Nachbar (邻居)"],"凌":["líng","凌","Morgengrauen (凌晨)"],"马":["mǎ","馬","Pferd"],"码":["mǎ","碼","Zahl, Code, Nummer"],"满":["mǎn","滿","voll, zufrieden"],"毛":["máo","毛","Haar, Wolle, 10 Cent"],"冒":["mào","冒","ausstoßen (感冒 Erkältung)"],"末":["mò","末","Ende (周末 Wochenende)"],"目":["mù","目","Auge, Ziel, Liste"],"南":["nán","南","Süden"],"难":["nán","難","schwierig, schwer"],"努":["nǔ","努","anstrengen (努力)"],"爬":["pá","爬","klettern, kriechen"],"怕":["pà","怕","fürchten, Angst haben"],"拍":["pāi","拍","schlagen, Foto knipsen"],"盘":["pán","盤","Teller, Platte"],"胖":["pàng","胖","dick, mollig"],"啤":["pí","啤","Bier (啤酒)"],"片":["piàn","片","Scheibe, Stück, ZEW Foto"],"平":["píng","平","eben, friedlich"],"瓶":["píng","瓶","Flasche, Vase"],"其":["qí","其","sein, jener (其他 andere)"],"奇":["qí","奇","seltsam (奇怪)"],"骑":["qí","騎","reiten, Rad fahren"],"汽":["qì","汽","Dampf, Gas (汽车 Auto)"],"铅":["qiān","鉛","Blei (铅笔 Bleistift)"],"且":["qiě","且","und, überdies (而且)"],"轻":["qīng","輕","leicht (Gewicht)"],"清":["qīng","清","klar, sauber (清楚)"],"秋":["qiū","秋","Herbst"],"求":["qiú","求","bitten, fordern, suchen"],"区":["qū","區","Bezirk, Region"],"趣":["qù","趣","Interesse (感兴趣)"],"全":["quán","全","ganz, vollständig"],"泉":["quán","泉","Quelle, Quellwasser"],"裙":["qún","裙","Rock, Kleid (裙子)"],"容":["róng","容","enthalten, leicht (容易)"],"如":["rú","如","wie, als ob (如果 wenn)"],"赛":["sài","賽","Wettbewerb, Match (比赛)"],"伞":["sǎn","傘","Regenschirm"],"扫":["sǎo","掃","fegen, kehren"],"沙":["shā","沙","Sand, Sofa (沙发)"],"山":["shān","山","Berg, Gebirge"],"衫":["shān","衫","Hemd, Oberteil"],"烧":["shāo","燒","brennen, kochen, Fieber"],"勺":["sháo","勺","Löffel"],"声":["shēng","聲","Laut, Stimme, Ton"],"实":["shí","實","wahr, echt (其实)"],"史":["shǐ","史","Geschichte (历史)"],"世":["shì","世","Welt, Generation (世界)"],"适":["shì","適","passen, geeignet (合适)"],"收":["shōu","收","erhalten, einsammeln"],"受":["shòu","受","empfangen, leiden"],"瘦":["shòu","瘦","dünn, mager"],"叔":["shū","叔","Onkel (叔叔)"],"束":["shù","束","bündeln, ZEW Strauß"],"树":["shù","樹","Baum"],"数":["shù / shǔ","數","Zahl / zählen (数学)"],"刷":["shuā","刷","bürsten, putzen (刷牙)"],"双":["shuāng","雙","Paar, doppelt"],"算":["suàn","算","rechnen, kalkulieren"],"糖":["táng","糖","Zucker, Bonbon"],"特":["tè","特","besonders (特别)"],"梯":["tī","梯","Leiter, Aufzug (电梯)"],"提":["tí","提","anheben, erwähnen"],"甜":["tián","甜","süß"],"挺":["tǐng","挺","sehr, aufrecht"],"突":["tū","突","plötzlich (突然)"],"图":["tú","圖","Bild, Karte (地图)"],"腿":["tuǐ","腿","Bein"],"碗":["wǎn","碗","Schüssel, Schale"],"卫":["wèi","衛","verteidigen (卫生间)"],"闻":["wén","聞","riechen, hören (新闻)"],"屋":["wū","屋","Zimmer, Haus"],"务":["wù","務","Angelegenheit, Pflicht"],"物":["wù","物","Ding, Sache (动物 Tier)"],"戏":["xì","戲","Theater, Spiel (游戏)"],"夏":["xià","夏","Sommer"],"鲜":["xiān","鮮","frisch (新鲜)"],"相":["xiāng / xiàng","相","gegenseitig / Foto"],"香":["xiāng","香","duftend, aromatisch"],"箱":["xiāng","箱","Koffer, Kiste (行李箱)"],"响":["xiǎng","響","ertönen, laut"],"向":["xiàng","向","in Richtung, nach"],"像":["xiàng","像","ähneln, wie ein Abbild"],"鞋":["xié","鞋","Schuh (鞋子)"],"心":["xīn","心","Herz, Gefühl"],"信":["xìn","信","Brief, vertrauen (相信)"],"行":["xíng / háng","行","gehen, in Ordnung / Reihe"],"熊":["xióng","熊","Bär (熊猫 Panda)"],"须":["xū","須","müssen (必须)"],"需":["xū","需","brauchen, benötigen"],"选":["xuǎn","選","wählen, auswählen"],"牙":["yá","牙","Zahn (刷牙)"],"言":["yán","言","Wort, Sprache (语言)"],"演":["yǎn","演","auftreten, spielen (表演)"],"羊":["yáng","羊","Schaf, Ziege"],"阳":["yáng","陽","Sonne, hell, Yang"],"养":["yǎng","養","aufziehen, ernähren"],"业":["yè","業","Beruf, Geschäft (作业)"],"页":["yè","頁","Seite, Blatt"],"姨":["yí","姨","Tante (阿姨)"],"议":["yì","議","diskutieren (会议)"],"易":["yì","易","leicht, einfach (容易)"],"音":["yīn","音","Klang, Ton (音乐)"],"银":["yín","銀","Silber, Bank (银行)"],"饮":["yǐn","飲","Getränk, trinken (饮料)"],"应":["yīng / yìng","應","sollen / antworten"],"迎":["yíng","迎","willkommen heißen"],"用":["yòng","用","benutzen, gebrauchen"],"邮":["yóu","郵","Post (邮局 Postamt)"],"又":["yòu","又","wieder, abermals"],"于":["yú","於","in, an, bezüglich"],"羽":["yǔ","羽","Feder (羽毛球)"],"育":["yù","育","erziehen (教育)"],"遇":["yù","遇","treffen, begegnen"],"园":["yuán","園","Garten, Park (公园)"],"员":["yuán","員","Mitglied, Personal"],"愿":["yuàn","願","wünschen (愿意)"],"越":["yuè","越","überqueren, je ... desto"],"咱":["zán","咱","wir (inklusive Gesprächspartner)"],"脏":["zāng","髒","schmutzig, dreckig"],"澡":["zǎo","澡","Badebad (洗澡 duschen)"],"择":["zé","擇","wählen (选择)"],"展":["zhǎn","展","ausbreiten, Ausstellung"],"张":["zhāng","張","öffnen, ZEW flache Dinge"],"照":["zhào","照","fotografieren, scheinen"],"者":["zhě","者","Person, die ... tut"],"直":["zhí","直","geradeaus, direkt"],"纸":["zhǐ","紙","Papier"],"终":["zhōng","終","Ende, schließlich (终于)"],"种":["zhǒng / zhòng","種","Art, Sorte / anpflanzen"],"重":["zhòng / chóng","重","schwer / wiederholen"],"主":["zhǔ","主","Herr, Haupt- (主要)"],"助":["zhù","助","helfen, Assistenz (帮助)"],"注":["zhù","注","aufmerken, gießen (注意)"],"总":["zǒng","總","immer, total (总是)"],"嘴":["zuǐ","嘴","Mund, Lippen"]
+    };
+
+    /* HSK 4, 5 & 6 KOMPRIMIERTE EINTRÄGE (CHAR:PINYIN:TRAD:MEANING;) */
+    const HSK456_PACKED = 
+      "按:àn::drücken, gemäß;案:àn::Fall, Akte, Tisch;傲:ào::stolz, hochmütig;巴:bā::hoffen, festkleben;败:bài:敗:verlieren, scheitern;棒:bàng::hervorragend, Stock;保:bǎo::schützen, bewahren;抱:bào::umarmen, halten;背:bèi::Rücken, auswendig lernen;倍:bèi::fach, doppelt;笨:bèn::dumm, ungeschickt;鼻:bí::Nase;毕:bì:畢:beenden, vollenden;标:biāo:標:Zeichen, Ziel, Markierung;饼:bǐng:餅:Keks, Pfannkuchen;并:bìng:並:zusammen, keineswegs;播:bō::senden, säen;博:bó::gelehrt, reichlich;膊:bo::Arm (胳膊);部:bù::Teil, Abteilung;擦:cā::reiben, wischen;猜:cāi::raten, vermuten;材:cái::Material, Talent;彩:cǎi::Farbe, bunt;餐:cān::Mahlzeit, Speise;操:cāo::ausüben, drillen;厕:cè:廁:Toilette;察:chá::untersuchen, beobachten;产:chǎn:產:erzeugen, gebären;厂:chǎng:廠:Fabrik, Werkstatt;晨:chén::Morgen, Früh;诚:chéng:誠:ehrlich, aufrichtig;乘:chéng::fahren mit, multiplizieren;程:chéng::Reise, Ablauf, Ordnung;厨:chú:廚:Küche;础:chǔ:礎:Fundament, Basis;窗:chuāng::Fenster;吹:chuī::blasen, wehen;此:cǐ::dies, hier;粗:cū::grob, dick;村:cūn::Dorf;存:cún::existieren, lagern, sparen;达:dá:達:erreichen, gelangen;待:dài::behandeln, abwarten;袋:dài::Tasche, Beutel;戴:dài::tragen (Brille, Schmuck);弹:tán / dàn:彈:Musikinstrument spielen / Kugel;刀:dāo::Messer;导:dǎo:導:führen, leiten;倒:dào / dǎo::umfallen / einschenken, rückwärts;登:dēng::besteigen, eintragen;低:dī::niedrig, senken;底:dǐ::Boden, Ende;递:dì:遞:überreichen, weitergeben;掉:diào::fallen, verlieren;订:dìng:訂:bestellen, abonnieren;堵:dǔ::verstopfen, blockieren;肚:dù::Bauch, Magen;度:dù::Grad, Ausmaß, verbringen;断:duàn:斷:brechen, abbrechen;队:duì:隊:Team, Schlange;顿:dùn:頓:Pause, ZEW Mahlzeit;尔:ěr:爾:du, jener;翻:fān::umdrehen, übersetzen;烦:fán:煩:lästig, ärgerlich;反:fǎn::Gegenteil, umgekehrt;费:fèi:費:Kosten, verbrauchen;份:fèn::Anteil, Exemplar;奋:fèn:奮:begeistern, anstrengen;丰:fēng:豐:üppig, reichhaltig;否:fǒu::verneinen, ob nicht;肤:fū:膚:Haut;符:fú::Symbol, übereinstimmen;幅:fú::ZEW Gemälde/Stoff;福:fú::Glück, Segen;父:fù::Vater;付:fù::bezahlen, übergeben;负:fù:負:tragen, negativ, verlieren;傅:fù::Meister, Lehrer;富:fù::reich, Wohlstand;改:gǎi::ändern, korrigieren;赶:gǎn:趕:einholen, beeilen;敢:gǎn::wagen, sich trauen;钢:gāng:鋼:Stahl;膏:gāo::Salbe, Paste;胳:gē::Achsel, Arm;格:gé::Muster, Stil, Gitter;各:gè::jeder, verschieden;功:gōng::Verdienst, Leistung;供:gōng::bereitstellen, versorgen;购:gòu:購:kaufen, erwerben;够:gòu::genug, ausreichen;估:gū::schätzen, bewerten;姑:gū::Tante väterlicherseits;鼓:gǔ::Trommel, ermutigen;挂:guà:掛:aufhängen;观:guān:觀:betrachten, Ansicht;管:guǎn::Rohr, verwalten;光:guāng::Licht, glatt, nur;广:guǎng:廣:breit, weit;逛:guàng::bummeln, spazieren;规:guī:規:Regel, Zirkel;咳:ké::husten;寒:hán::kalt, Kälte;喊:hǎn::rufen, schreien;汗:hàn::Schweiß;航:háng::fahren (Schiff/Flugzeug);何:hé::was, wie, welcher;盒:hé::Schachtel, Box;贺:hè:賀:gratulieren;厚:hòu::dick, tief;呼:hū::rufen, ausatmen;忽:hū::plötzlich, vernachlässigen;虎:hǔ::Tiger;互:hù::gegenseitig;户:hù:戶:Haushalt, Tür;划:huà / huá:劃:planen / rudern;怀:huái:懷:Busen, gedenken;悔:huǐ::bereuen;伙:huǒ::Gefährte, Gruppe;货:huò:貨:Ware, Güter;获:huò:獲:erhalten, ernten;圾:jī::Müll (垃圾);积:jī:積:ansammeln;基:jī::Basis, Fundament;及:jí::und, erreichen;即:jí::nämlich, sofort;籍:jí::Buch, Herkunftsort;计:jì:計:zählen, berechnen;纪:jì:紀:Epoche, Disziplin;技:jì::Fähigkeit, Technik;际:jì:際:Grenze, zwischen;济:jì:濟:helfen, Wirtschaft;既:jì::sowohl, bereits;继:jì:繼:fortsetzen;寄:jì::senden, schicken;价:jià:價:Preis, Wert;减:jiǎn:減:vermindern, abziehen;建:jiàn::bauen, errichten;键:jiàn:鍵:Taste, Schlüssel;江:jiāng::großer Fluss;将:jiāng:將:werden (Zukunft), General;奖:jiǎng:獎:Preis, Belohnung;降:jiàng::fallen, sinken;郊:jiāo::Vorort, Umland;骄:jiāo:驕:stolz, arrogant;巾:jīn::Tuch, Handtuch;金:jīn::Gold, Metall;仅:jǐn:僅:nur, bloß;尽:jìn / jǐn:盡:erschöpfen / möglichst;紧:jǐn:緊:straff, dringend;禁:jìn / jīn::verbieten / ertragen;京:jīng::Hauptstadt;惊:jīng:驚:erschrecken, überraschen;精:jīng::präzise, Geist;景:jǐng::Aussicht, Landschaft;警:jǐng::Polizei, warnen;竞:jìng:競:wetteifern;竟:jìng::unerwartet, tatsächlich;镜:jìng:鏡:Spiegel, Brille;究:jiū::erforschen;举:jǔ:舉:heben, vorschlagen;拒:jù::ablehnen;具:jù::Werkzeug, besitzen;剧:jù:劇:theaterstück, Drama;距:jù::Distanz, Abstand;聚:jù::versammeln;绝:jué:絕:absolut, abbrechen;烤:kǎo::backen, grillen;科:kē::Fachrichtung, Wissenschaft;棵:kē::ZEW Bäume;克:kè::Gramm, überwinden;肯:kěn::bereit sein, zustimmen;恐:kǒng::fürchten, Angst;苦:kǔ::bitter, mühsam;况:kuàng:況:Zustand, Situation;困:kùn::müde, umzingelt;垃:lā::Müll (垃圾);拉:lā::ziehen;辣:là::scharf, pikant;懒:lǎn:懶:faul, träge;浪:làng::Welle, verschwenderisch;厉:lì:厲:streng, heftig;丽:lì:麗:schön, prächtig;励:lì:勵:anspornen;利:lì::Gewinn, scharf;例:lì::Beispiel, Regel;俩:liǎ:倆:zwei Personen;连:lián:連:verbinden, sogar;联:lián:聯:vereinigen;谅:liàng:諒:verzeihen (原谅);量:liàng / liáng::Menge / messen;列:liè::Reihe, aufzählen;林:lín::Wald;龄:líng:齡:Alter;另:lìng::ein anderer, separat;流:liú::fließen, Strömung;乱:luàn:亂:chaotisch, unordentlich;论:lùn:論:erörtern, Theorie;落:luò::fallen, sinken;律:lǜ::Gesetz, Regel;虑:lǜ:慮:bedenken, Sorge;麻:má::Hanf, taub, prickelnd;馒:mán:饅:Dampfbrötchen;漫:màn::überfluten, endlos;帽:mào::Mütze, Hut;貌:mào::Aussehen, Höflichkeit;美:měi::schön;梦:mèng:夢:Traum, träumen;迷:mí::verirren, Fan;密:mì::dicht, geheim;免:miǎn::befreien, vermeiden;秒:miǎo::Sekunde;民:mín::Volk, Bürger;命:mìng::Leben, Schicksal;默:mò::still, schweigen;母:mǔ::Mutter, weiblich;慕:mù::bewundern (羡慕);耐:nài::ertragen, geduldig;恼:nǎo:惱:verärgert;闹:nào:鬧:Lärm machen, lebhaft;内:nèi::innen, intern;嗯:èn::Zustimmungslaut;娘:niáng::Mutter, Frau;农:nóng:農:Landwirtschaft;弄:nòng::machen, hantieren;暖:nuǎn::warm;偶:ǒu::zufällig, Puppe;排:pái::Reihe, anordnen;牌:pái::Schild, Marke, Karte;判:pàn::urteilen;乓:pāng::Pingpong;陪:péi::begleiten;批:pī::genehmigen, Charge;皮:pí::Haut, Leder;脾:pí::Milz, Temperament;篇:piān::Aufsatz, ZEW Artikel;频:pín:頻:Frequenz, häufig;品:pǐn::Ware, Qualität;聘:pìn::einstellen, anwerben;乒:pīng::Pingpong;评:píng:評:bewerten, kritisieren;泼:pō:潑:spritzen, lebhaft;破:pò::kaputt, zerreißen;葡:pú::Weintraube (葡萄);普:pǔ::allgemein, universell;戚:qī::Verwandter (亲戚);弃:qì:棄:aufgeben, verlassen;签:qiān:簽:unterschreiben;歉:qiàn::entschuldigen (道歉);强:qiáng:強:stark, mächtig;敲:qiāo::klopfen, schlagen;桥:qiáo:橋:Brücke;巧:qiǎo::geschickt, zufällig;切:qiē / qiè::schneiden / dringend;亲:qīn:親:nah, verwandt, küssen;琴:qín::Saiteninstrument;青:qīng::blaugrün, jung;庆:qìng:慶:feiern, beglückwünschen;取:qǔ::holen, nehmen;缺:quē::fehlen, Mangel;却:què:卻:aber, jedoch;确:què:確:sicher, wahrhaftig;染:rǎn::färben, anstecken;扰:rǎo:擾:stören;任:rèn::ernennen, Pflicht;扔:rēng::werfen;仍:réng::immer noch;入:rù::eintreten;散:sàn / sǎn::zerstreuen / locker;森:sēn::Wald, dicht;伤:shāng:傷:Wunde, verletzen;稍:shāo::ein wenig;社:shè::Gesellschaft, Gruppe;摄:shè:攝:fotografieren, aufnehmen;申:shēn::erklären, beantragen;深:shēn::tief, dunkel (Farbe);甚:shèn::äußerst, sogar;省:shěng / xǐng::sparen, Provinz / prüfen;剩:shèng::übrigbleiben;失:shī::verlieren, verpassen;拾:shí::aufheben, zehn;食:shí::Nahrung, essen;使:shǐ::benutzen, veranlassen;氏:shì::Familienname, Sippe;示:shì::zeigen, kundtun;式:shì::Muster, Formel;柿:shì::Kaki (Persimone);释:shì:釋:erklären, befreien;匙:chí / shi::Löffel, Schlüssel;首:shǒu::Kopf, Anführer, ZEW Lied;授:shòu::verleihen, unterrichten;售:shòu::verkaufen;输:shū:輸:verlieren, transportieren;熟:shú::reif, gekocht, vertraut;暑:shǔ::Sommerhitze;术:shù:術:Kunst, Technik;帅:shuài:帥:gutaussehend, Feldherr;顺:shùn:順:folgen, reibungslos;硕:shuò:碩:groß, Master-Abschluss;死:sǐ::sterben, tot;松:sōng::locker, Kiefer;嗽:sòu::husten (咳嗽);速:sù::Geschwindigkeit;塑:sù::modellieren, Plastik;酸:suān::sauer, schmerzen;随:suí:隨:folgen, beliebig;孙:sūn:孫:Enkel;台:tái:臺:Bühne, Plattform, ZEW Gerät;抬:tái::anheben, tragen;态:tài:態:Zustand, Haltung;谈:tán:談:sprechen, verhandeln;汤:tāng:湯:Suppe;躺:tǎng::liegen;趟:tàng::ZEW Hin- und Rückweg;萄:táo::Weintraube (葡萄);讨:tǎo:討:fordern, diskutieren;套:tào::Hülle, Set;堂:táng::Saal, Halle;填:tián::ausfüllen;厅:tīng:廳:Halle, Saal;庭:tíng::Hof, Gericht;停:tíng::anhalten, stoppen;通:tōng::hindurch, verbinden;童:tóng::Kind (儿童);桶:tǒng::Eimer, Fass;痛:tòng::Schmerz, traurig;土:tǔ::Erde, Boden;推:tuī::schieben, aufschieben;脱:tuō:脫:ausziehen (Kleidung);袜:wà:襪:Socke, Strumpf;危:wēi::Gefahr, bedrohlich;微:wēi::winzig, mikro;围:wéi:圍:umzingeln, Schal;味:wèi::Geschmack, Geruch;温:wēn::warm, Temperatur;污:wū::Schmutz, beschmutzen;无:wú:無:ohne, nicht vorhanden;误:wù:誤:Fehler, versäumen;吸:xī::saugen, einatmen;悉:xī::wissen, vertraut;惜:xī::schätzen, bedauern;细:xì:細:dünn, fein;咸:xián::salzig;险:xiǎn:險:Gefahr, riskant;线:xiàn:線:Linie, Faden;羡:xiàn::beneiden (羡慕);乡:xiāng:鄉:Heimat, Dorf;详:xiáng:詳:detailliert;项:xiàng:項:Nacken, Posten;象:xiàng::Elefant, Erscheinung;消:xiāo::verschwinden, tilgen;效:xiào::Wirkung, Effekt;辛:xīn::mühsam, scharf;醒:xǐng::aufwachen;幸:xìng::Glück, glücklich;性:xìng::Geschlecht, Natur;兄:xiōng::älterer Bruder;修:xiū::reparieren, dekorieren;羞:xiū::Scham, schütern;秀:xiù::elegant, Show;许:xǔ:許:erlauben, vielleicht;序:xù::Reihenfolge, Vorwort;续:xù:續:fortführen;血:xuè / xiě::Blut;压:yā:壓:drücken, Druck;亚:yà:亞:zweiter, Asien;烟:yān:煙:Rauch, Zigarette;严:yán:嚴:streng, ernst;研:yán::forschen;盐:yán:鹽:Salz;厌:yàn:厭:überdrüssig, hassen;验:yàn:驗:prüfen, Test;扬:yáng:揚:erheben, flattern;洋:yáng::Ozean, ausländisch;邀:yāo::einladen;钥:yào:鑰:Schlüssel (钥匙);叶:yè:葉:Blatt (Pflanze);夜:yè::Nacht;疑:yí::zweifeln, verdächtigen;艺:yì:藝:Kunst, Kunstfertigkeit;忆:yì:憶:erinnern;译:yì:譯:übersetzen;谊:yì:誼:Freundschaft (友谊);引:yǐn::leiten, anziehen;印:yìn::drucken, Siegel;赢:yíng:贏:gewinnen;永:yǒng::ewig;勇:yǒng::mutig, tapfer;优:yōu:優:exzellent;幽:yōu::still, Humor;尤:yóu::besonders (尤其);由:yóu::aufgrund, Ursache;油:yóu::Öl, fettig;愉:yú::erfreut, fröhlich;与:yǔ:與:und, mit, geben;预:yù:預:im Voraus;原:yuán::ursprünglich, Wiese;约:yuē:約:Verabredung, etwa;阅:yuè:閱:lesen, mustern;云:yún:雲:Wolke;允:yǔn::erlauben;杂:zá:雜:gemischt, komplex;仔:zǐ::sorgfältig (仔细);暂:zàn:暫:vorübergehend;则:zé:則:Regel, jedoch;责:zé:責:Pflicht, tadeln;增:zēng::vermehren, steigen;章:zhāng::Kapitel, Siegel;账:zhàng:賬:Rechnung, Konto;招:zhāo::winken, anwerben;折:zhé::falten, brechen, Rabatt;针:zhēn:針:Nadel;争:zhēng:爭:streiten, kämpfen;整:zhěng::ganz, ordnen;证:zhèng:證:Beweis, Ausweis;之:zhī::dessen, Genitivpartikel;支:zhī::stützen, ZEW Stifte;汁:zhī::Saft;值:zhí::Wert, wert sein;职:zhí:職:Beruf, Amt;植:zhí::pflanzen;止:zhǐ::stoppen;址:zhǐ::Adresse, Standort;指:zhǐ::Finger, zeigen auf;至:zhì::bis, äußerst;志:zhì::Wille, Absicht;质:zhì:質:Qualität, Wesen;众:zhòng:眾:Menge, Masse;洲:zhōu::Kontinent;祝:zhù::wünschen, gratulieren;著:zhù::bekannt, Werk;专:zhuān:專:speziell, Experte;转:zhuǎn / zhuàn:轉:drehen, wenden;赚:zhuàn:賺:verdienen (Geld);装:zhuāng:裝:kleiden, laden;资:zī:資:Kapital, Mittel;族:zú::Volk, Sippe;组:zǔ:組:Gruppe, organisieren;尊:zūn::respektieren;座:zuò::Sitz, ZEW Gebäude;" +
+      "哎:āi::Ach, Ausruf;唉:ài::Seufzer;暗:àn::dunkel, heimlich;熬:áo::köcheln, ertragen;版:bǎn::Druckausgabe;扮:bàn::verkleiden als;伴:bàn::Gefährte, begleiten;膀:bǎng::Schulter;傍:bàng::dämmern (傍晚);薄:báo::dünn;宝:bǎo:寶:Schatz, wertvoll;暴:bào::gewaltsam, plötzlich;贝:bèi:貝:Muschel, Schatz;彼:bǐ::jener, gegenseitig;币:bì:幣:Währung, Geld;闭:bì:閉:schließen;避:bì::ausweichen, meiden;拨:bō:撥:wählen (Telefon), zuteilen;玻:bō::Glas (玻璃);补:bǔ:補:reparieren, ergänzen;布:bù::Stoff, verkünden;裁:cái::schneiden, schlichten;采:cǎi::pflücken, wählen;藏:cáng / zàng::verstecken / Schatz;册:cè:冊:Buchband, Heft;测:cè:測:messen, testen;曾:céng::ehemals, jemals;叉:chā::Gabel;插:chā::hineinstecken;拆:chāi::abbauen, öffnen;倡:chàng::initiieren;朝:cháo / zhāo::Dynastie, nach / Morgen;吵:chǎo::lärmen, streiten;炒:chǎo::braten (im Wok);彻:chè:徹:gründlich;沉:chén::sinken, tief;称:chēng / chèn:稱:nennen / passen;承:chéng::tragen, anerkennen;橙:chéng::Orange;池:chí::Teich, Becken;尺:chǐ::Lineal, Maß;齿:chǐ:齒:Zahn;翅:chì::Flügel;冲:chōng:衝:spülen, stürmen;充:chōng::füllen, genügen;虫:chóng:蟲:Insekt, Wurm;宠:chǒng:寵:verziehen, Liebling;抽:chōu::herausziehen, rauchen;丑:chǒu::hässlich, Clown;臭:chòu::stinkend;触:chù:觸:berühren;传:chuán:傳:überliefern, weitergeben;创:chuàng:創:erschaffen, gründen;辞:cí:辭:kündigen, Worte;刺:cì::stechen, Dorn;促:cù::antreiben, fördern;催:cuī::drängen;措:cuò::Maßnahme treffen;代:dài::Generation, vertreten;胆:dǎn:膽:Galle, Mut;旦:dàn::Morgen, Tag;淡:dàn::mild, geschmacklos;挡:dǎng:擋:blockieren, Schutz;档:dàng:檔:Akten, Niveau;蹈:dǎo::treten, tanzen;敌:dí:敵:Feind;蝶:dié::Schmetterling;冻:dòng:凍:frieren, gefrieren;洞:dòng::Loch, Höhle;斗:dòu:鬥:kämpfen, Scheffel;豆:dòu::Bohne;独:dú:獨:allein, einzig;堆:duī::Haufen, stapeln;吨:dūn:噸:Tonne (1000kg);盾:dùn::Schild;躲:duǒ::verstecken, ausweichen;乏:fá::erschöpft, Mangel;罚:fá:罰:bestrafen;番:fān::Mal, Sorte;繁:fán::vielfältig, mühsam;返:fǎn::zurückkehren;泛:fàn::fluten, weit;范:fàn:範:Muster, Bereich;防:fáng::verteidigen;仿:fǎng::nachahmen;访:fǎng:訪:besuchen, interviewen;肥:féi::fett, fruchtbar;纷:fēn:紛:zahlreich, verworren;疯:fēng:瘋:verrückt;扶:fú::stützen, helfen;佛:fó::Buddha;府:fǔ::Regierungssitz;腐:fǔ::faulen, korrupt;妇:fù:婦:Frau;副:fù::Vize-, ZEW Set;盖:gài:蓋:Deckel, bedecken;搞:gǎo::machen, tun;革:gé::Leder, Reform;隔:gé::trennen, Distanz;恭:gōng::respektvoll;贡:gòng:貢:beitragen, Tribut;沟:gōu:溝:Graben, Rinne;构:gòu:構:konstruieren;古:gǔ::antik, alt;固:gù::fest, stabil;冠:guān / guàn::Krone / Meisterschaft;瑰:guī::Rose, kostbar;柜:guì:櫃:Schrank;滚:gǔn:滾:rollen, verschwinden;锅:guō:鍋:Topf, Wok;裹:guǒ::einwickeln;哈:hā::Lachen, Hauch;含:hán::enthalten, im Mund behalten;憾:hàn::bedauern;衡:héng::wiegen, Gleichgewicht;猴:hóu::Affe;胡:hú::Bart, unsinnig;湖:hú::See;蝴:hú::Schmetterling;糊:hú::Paste, verwirrt;华:huá:華:prächtig, China;滑:huá::rutschig, gleiten;缓:huǎn:緩:langsam, lindern;灰:huī::Asche, grau;挥:huī:揮:winken, schwingen;恢:huī::wiederherstellen;汇:huì:匯:sammeln, überweisen;惠:huì::Gunst, Vorteil;慧:huì::Weisheit;祸:huò:禍:Unglück, Katastrophe;肌:jī::Muskel, Fleisch;疾:jí::Krankheit, eilig;集:jí::sammeln, Markt;辑:jí:輯:redigieren (编辑);挤:jǐ:擠:quetschen, drängeln;迹:jì:跡:Spur, Zeichen;佳:jiā::ausgezeichnet, gut;嘉:jiā::loben, erfreulich;甲:jiǎ::Erster, Rüstung;驾:jià:駕:steuern, fahren;架:jià::Regal, Gestell;艰:jiān:艱:schwer, beschwerlich;捡:jiǎn:撿:aufheben;剪:jiǎn::schneiden, Schere;荐:jiàn:薦:empfehlen;渐:jiàn:漸:allmählich;践:jiàn:踐:in die Tat umsetzen;浆:jiāng:漿:Brei, Dicksaft;浇:jiāo:澆:gießen, bewässern;阶:jiē:階:Stufe, Treppe;届:jiè:屆:Sitzungsperiode;谨:jǐn:謹:vorsichtig;敬:jìng::verehren;救:jiù::retten;局:jú::Büro, Amt, Spielrunde;橘:jú::Mandarine;巨:jù::riesig, gewaltig;捐:juān::spenden;卷:juǎn / juàn::rollen / Prüfungsbogen;军:jūn:軍:Armee, Militär;均:jūn::gleichmäßig;靠:kào::anlehnen, vertrauen;颗:kē:顆:ZEW Körner/Samen;控:kòng::kontrollieren;扣:kòu::zuknöpfen, abziehen;库:kù:庫:Lager, Magazin;宽:kuān:寬:breit;款:kuǎn::Geldsumme, Modell;狂:kuáng::wild, tollwütig;亏:kuī:虧:Verlust, einbüßen;昆:kūn::Insekt (昆虫);扩:kuò:擴:erweitern;括:kuò::umfassen (包括);览:lǎn:覽:anschauen;郎:láng::junger Mann;劳:láo:勞:Arbeit, Mühe;姥:lǎo::Großmutter mütterlicherseits;泪:lèi:淚:Träne;类:lèi:類:Art, Sorte;厘:lí::Zentimeter, Teil;梨:lí::Birne;璃:lí::Glas (玻璃);立:lì::stehen, gründen;恋:liàn:戀:Liebe, zuneigen;良:liáng::gut, brav;粮:liáng:糧:Getreide, Nahrung;疗:liáo:療:heilen, behandeln;烈:liè::heftig, intensiv;临:lín:臨:nahen, bevorstehen;灵:líng:靈:Geist, flink;铃:líng:鈴:Klingel, Schelle;领:lǐng:領:Hals, führen;令:lìng::befehlen, veranlassen;浏:liú:瀏:durchblättern;龙:lóng:龍:Drache;漏:lòu::lecken, auslaufen;陆:lù:陸:land, Festland;录:lù:錄:aufzeichnen;碌:lù::beschäftigt (忙碌);逻:luó:邏:Logik, patrouillieren;络:luò:絡:Netzwerk;率:lǜ / shuài::Rate / anführen;骂:mà:罵:schimpfen;矛:máo::Speer;玫:méi::Rose (玫瑰);媒:méi::Medium;魅:mèi::Charme, Zauber;秘:mì::geheim (秘密);眠:mián::schlafen;描:miáo::zeichnen, schildern;敏:mǐn::schnell, sensibel;摸:mō::berühren, tasten;模:mó / mú::Muster, Model;陌:mò::fremd (陌生);漠:mò::Wüste, gleichgültig;某:mǒu::gewisse(r);木:mù::Holz, Baum;幕:mù::Vorhang, Leinwand;奈:nài::hilflos (无奈);念:niàn::lesen, gedenken;浓:nóng:濃:dicht, stark;哦:ó::Ausruf des Verstehens;欧:ōu:歐:Europa;派:pài::entsenden, Fraktion;培:péi::heranziehen, pflegen;赔:péi:賠:entschädigen;配:pèi::passen, zuteilen;盆:pén::Becken, Schüssel;碰:pèng::anstoßen, treffen;匹:pǐ::ZEW Pferde;骗:piàn:騙:betrügen;拼:pīn::zusammenfügen;凭:píng:憑:stützen auf, Beweis;屏:píng::Bildschirm, Schirm;婆:pó::alte Frau, Schwiegermutter;齐:qí:齊:ordentlich, gleich;企:qǐ::Unternehmen, planen;器:qì::Gerät, Gefäß;浅:qiǎn:淺:flach, hell (Farbe);欠:qiàn::schulden, gähnen;墙:qiáng:牆:Wand, Mauer;抢:qiǎng:搶:rauben, sich beeilen;悄:qiāo::leise (悄悄);茄:qié::Aubergine;勤:qín::fleißig;穷:qióng:窮:arm, erschöpft;曲:qū / qǔ::krumm / Melodie;趋:qū:趨:streben nach;权:quán:權:Recht, Macht;劝:quàn:勸:überreden, raten;群:qún::Herde, Gruppe;燃:rán::brennen, entzünden;绕:rào:繞:umkreisen, wickeln;忍:rěn::erdulden;荣:róng:榮:Ehre, Ruhm;软:ruǎn:軟:weich, sanft;润:rùn:潤:feucht, Profit;弱:ruò::schwach;洒:sǎ:灑:verschütten, streuen;傻:shǎ::albern, dumm;厦:shà / xià:廈:hohes Gebäude / Xiamen;晒:shài::sonnen, trocknen;删:shān:刪:löschen;扇:shàn / shān::Fächer / fächeln;善:shàn::gut, gütig;擅:shàn::eigenmächtig, geschickt;赏:shǎng:賞:belohnen, schätzen;蛇:shé::Schlange;舍:shě / shè:捨:aufgeben / Hütte;设:shè:設:einrichten, planen;伸:shēn::ausstrecken;神:shén::Gott, Geist, wunderbar;慎:shèn::umsichtig, vorsichtig;升:shēng::steigen, Liter;胜:shèng:勝:siegen, übertreffen;诗:shī:詩:Gedicht;施:shī::ausführen, spenden;湿:shī:濕:feucht, nass;石:shí::Stein;驶:shǐ:駛:fahren, steuern;似:sì / shì::scheinen, ähnlich;势:shì:勢:Macht, situation;饰:shì:飾:schmücken;守:shǒu::beschützen, einhalten;殊:shū::besonders;蔬:shū::Gemüse (蔬菜);属:shǔ:屬:gehören zu;鼠:shǔ::Maus, Ratte;述:shù::darlegen;摔:shuāi::stürzen, werfen;税:shuì:稅:Steuer;私:sī::privat, egoistisch;搜:sōu::durchsuchen;俗:sú::Brauch, vulgär;肃:sù:肅:feierlich, streng;素:sù::Element, schlicht;宿:sù / xiǔ::übernachten / Nacht;碎:suì::zerbrechen, zerdrückt;损:sǔn:損:beschädigen;缩:suō:縮:schrumpfen;索:suǒ::Seil, suchen;锁:suǒ:鎖:Schloss, verriegeln;桃:táo::Pfirsich;替:tì::ersetzen, für;挑:tiāo / tiǎo::wählen / herausfordern;贴:tiē:貼:kleben;统:tǒng:統:vereinen, System;投:tóu::werfen, investieren;途:tú::Weg, Route;兔:tù::Hase;团:tuán:團:Gruppe, Ballen;退:tuì::zurücktreten;拖:tuō::schleppen, zögern;弯:wān:彎:Kurve, beugen;威:wēi::Macht, Ehrfurcht;违:wéi:違:verstoßen;唯:wéi::nur, einzig;维:wéi:維:erhalten, Dimension;伟:wěi:偉:großartig;尾:wěi::Schwanz, Ende;未:wèi::noch nicht;胃:wèi::Magen;慰:wèi::trösten;稳:wěn:穩:stabil, fest;卧:wò:臥:liegen, schlafen;握:wò::greifen, halten;伍:wǔ::Truppe, fünf;武:wǔ::militärisch, Kampfkunst;雾:wù:霧:Nebel;夕:xī::Abend, Sonnenuntergang;析:xī::analysieren;席:xí::Matte, Sitzplatz;闲:xián:閑:müßig, Freizeit;显:xiǎn:顯:offensichtlich;县:xiàn:縣:Kreis, Landkreis;限:xiàn::begrenzen, Limit;献:xiàn:獻:darbringen, widmen;厢:xiāng:廂:Waggon, Kasten;享:xiǎng::genießen;橡:xiàng::Eiche, Gummi;销:xiāo:銷:verkaufen, schmelzen;肖:xiào / xiāo::ähneln / Nachname;协:xié:協:kooperieren;胁:xié:脅:bedrohen, Flanke;斜:xié::schräg;欣:xīn::erfreut (欣赏);形:xíng::Form, Gestalt;型:xíng::Typ, Modell;虚:xū::leer, unecht;绪:xù:緒:Faden, Stimmung;宣:xuān::verkünden;寻:xún:尋:suchen;询:xún:詢:nachfragen;训:xùn:訓:unterweisen;迅:xùn::schnell (迅速);押:yā::verpfänden, Kaution;鸭:yā:鴨:Ente;呀:ya::Partikel des Erstaunens;延:yán::verlängern, aufschieben;沿:yán::entlang;腰:yāo::Taille, Hüfte;摇:yáo:搖:schütteln;咬:yǎo::beißen;依:yī::sich stützen auf;移:yí::bewegen, verschieben;遗:yí:遺:hinterlassen, verlieren;乙:yǐ::zweiter Himmelsstamm;亿:yì:億:hundert Millionen;义:yì:義:Gerechtigkeit, Sinn;益:yì::Nutzen, Vorteil;营:yíng:營:Lager, betreiben;映:yìng::widerspiegeln;硬:yìng::hart, starr;拥:yōng:擁:umarmen, besitzen;悠:yōu::gemächlich;犹:yóu:猶:noch, wie;幼:yòu::jung, Kind;余:yú::Rest, übrig;娱:yú:娛:unterhalten, Vergnügen;玉:yù::Jade;域:yù::Gebiet, Sphäre;喻:yù::Metapher, verstehen;寓:yù::wohnen, Botschaft;豫:yù::zögern, Henan;圆:yuán:圓:rund, Kreis;源:yuán::Quelle, Ursprung;怨:yuàn::grollen, klagen;载:zǎi / zài:載:Jahr / laden;赞:zàn:贊:loben;糟:zāo::verdorben (糟糕);造:zào::bauen, erschaffen;赠:zèng:贈:schenken;炸:zhá / zhà::frittieren / explodieren;摘:zhāi::pflücken, exzerpieren;窄:zhǎi::eng, schmal;占:zhān / zhàn::besetzen, ausmachen;战:zhàn:戰:Krieg, Schlacht;涨:zhǎng / zhàng:漲:ansteigen / anschwellen;掌:zhǎng::Handfläche, leiten;召:zhào::einberufen;哲:zhé::Philosophie, weise;珍:zhēn::kostbar, schätzen;诊:zhěn:診:untersuchen (Arzt);阵:zhèn:陣:Front, ZEW Schauer;震:zhèn::beben, erschüttern;征:zhēng::Feldzug, Zeichen;挣:zhèng:掙:verdienen, ringen;政:zhèng::Politik, Regierung;织:zhī:織:weben, stricken;执:zhí:執:halten, ausführen;制:zhì::System, herstellen;治:zhì::regieren, heilen;致:zhì::widmen, verursachen;智:zhì::Weisheit, klug;置:zhì::platzieren, kaufen;猪:zhū:豬:Schwein;竹:zhú::Bambus;逐:zhú::nacheinander, jagen;煮:zhǔ::kochen;筑:zhù:築:bauen;抓:zhuā::greifen, packen;状:zhuàng:狀:Zustand, Form;撞:zhuàng::zusammenstoßen;追:zhuī::verfolgen, jagen;咨:zī:諮:beraten (咨询);姿:zī::Haltung, Pose;紫:zǐ::lila, violett;综:zōng:綜:zusammenfassen;阻:zǔ::hindern, blockieren;醉:zuì::betrunken;遵:zūn::befolgen, achten;" +
+      "碍:ài:礙:behindern;岸:àn::Ufer, Küste;昂:áng::hoch, teuer;拔:bá::herausziehen;摆:bǎi:擺:platzieren, pendeln;拜:bài::verehren, besuchen;榜:bǎng::Rangliste;胞:bāo::Zelle, Gebärmutter;爆:bào::explodieren;悲:bēi::traurig;辈:bèi:輩:Generation;奔:bēn / bèn::rennen / zusteuern;逼:bī::erzwingen, drängen;壁:bì::Wand, Mauer;臂:bì::Arm;编:biān:編:flechten, verfassen;兵:bīng::Soldat;脖:bó::Hals, Nacken;捕:bǔ::fangen;财:cái:財:Reichtum, Geld;踩:cǎi::treten auf;残:cán:殘:grausam, unvollständig;仓:cāng:倉:Lagerhaus;侧:cè:側:Seite, schräg;策:cè::Strategie, Plan;柴:chái::Brennholz;肠:cháng:腸:Darm;偿:cháng:償:entschädigen;畅:chàng:暢:reibungslos;抄:chāo::abschreiben, kopieren;嘲:cháo::verspotten;潮:cháo::Gezeiten, feucht;撤:chè::zurückziehen, räumen;臣:chén::Minister, Untertan;尘:chén:塵:Staub;趁:chèn::Gelegenheit nutzen;撑:chēng:撐:stützen, spannen;呈:chéng::vorlegen, zeigen;惩:chéng:懲:bestrafen;崇:chóng::verehren, erhaben;愁:chóu::Sorge, traurig;筹:chóu:籌:planen, Chip;储:chǔ:儲:speichern, sparen;串:chuàn::aufspießen, Reihe;闯:chuǎng:闖:hereinplatzen;垂:chuí::hängen, senken;纯:chún:純:rein, pur;瓷:cí::Porzellan;匆:cōng::hastig, eilig;醋:cù::Essig, Eifersucht;脆:cuì::knusprig, brüchig;寸:cùn::Zoll (Längenmaß);挫:cuò::Rückschlag, dämpfen;搭:dā::zusammenbauen, mitfahren;呆:dāi::dumm, verweilen;贷:dài:貸:leihen, Kredit;耽:dān::verzögern;诞:dàn:誕:geboren werden;岛:dǎo:島:Insel;稻:dào::Reispflanze;德:dé::Tugend, Moral;滴:dī::Tropfen, tröpfeln;抵:dǐ::widerstehen, aufwiegen;帝:dì::Kaiser, Gott;吊:diào::aufhängen, Kran;钓:diào:釣:angeln;跌:diē::stürzen, fallen;顶:dǐng:頂:Spitze, tragen;栋:dòng:棟:Firstbalken, ZEW Haus;逗:dòu::necken, amüsieren;督:dū::überwachen;毒:dú::Gift, bösartig;渡:dù::überqueren (Fluss);端:duān::Ende, tragen;蹲:dūn::hocken;夺:duó:奪:entreißen, erobern;额:é:額:Stirn, Quote;恶:è / wù:惡:böse / verabscheuen;帆:fān::Segel;凡:fán::gewöhnlich, jeder;犯:fàn::begehen, verletzen;妨:fáng::behindern;肪:fáng::Fett (脂肪);肺:fèi::Lunge;氛:fēn::Atmosphäre (气氛);粉:fěn::Pulver, rosa;愤:fèn:憤:wütend, empört;峰:fēng::Berggipfel;蜂:fēng::Biene, Wespe;奉:fèng::darbringen;浮:fú::treiben, schwimmen;辅:fǔ:輔:unterstützen;赋:fù:賦:Gedicht, verleihen;覆:fù::bedecken, umstürzen;尬:gà::peinlich (尴尬);肝:gān::Leber;尴:gān::in Verlegenheit (尴尬);岗:gǎng:崗:Hügel, Posten;港:gǎng::Hafen;稿:gǎo::Manuskript, Entwurf;割:gē::abschneiden;攻:gōng::angreifen;宫:gōng:宮:Palast;巩:gǒng:鞏:festigen (巩固);孤:gū::einsam, Waise;股:gǔ::Oberschenkel, Aktie;骨:gǔ::Knochen;拐:guǎi::abbiegen, Krücke;官:guān::Beamter, Organ;贯:guàn:貫:durchdringen;罐:guàn::Dose, Krug;归:guī:歸:zurückkehren;龟:guī:龜:Schildkröte;轨:guǐ:軌:Gleis, Schiene;跪:guì::knien;棍:gùn::Stock, Prügel;涵:hán::enthalten, Toleranz;罕:hǎn::selten;旱:hàn::Dürre, trocken;毫:háo::Haar, milli-;豪:háo::heroisch, großartig;耗:hào::verbrauchen;核:hé::Kern, prüfen;嘿:hēi::Hey, Hallo;痕:hén::Spur, Narbe;狠:hěn::grausam, entschlossen;恨:hèn::hassen;横:héng / hèng:橫:horizontal / rabiat;宏:hóng::großartig;虹:hóng::Regenbogen;洪:hóng::Flut, groß;壶:hú:壺:Kanne, Topf;幻:huàn::Illusion, Fantasie;患:huàn::leiden, Unheil;皇:huáng::kaiserlich;绘:huì:繪:malen, schildern;混:hùn / hún::mischen / trüb;惑:huò::verwirrt, zweifeln;击:jī:擊:schlagen, treffen;饥:jī:飢:hungrig, Hunger;吉:jí::Glück, verheißungsvoll;寂:jì::einsam, still;夹:jiā:夾:klemmen, Ordner;嫁:jià::heiraten (Frau);稼:jià::Getreide anbauen;尖:jiān::spitz, scharf;肩:jiān::Schulter;监:jiān:監:überwachen, Gefängnis;兼:jiān::zugleich innehaben;剑:jiàn:劍:Schwert;鉴:jiàn:鑑:begutachten, Spiegel;箭:jiàn::Pfeil;酱:jiàng:醬:Sauce, Paste;胶:jiāo:膠:Kleber, Gummi;椒:jiāo::Pfeffer, Paprika;焦:jiāo::verbrannt, ängstlich;杰:jié:傑:herausragend;洁:jié:潔:sauber, rein;捷:jié::schnell, Sieg;截:jié::abschneiden, Frist;戒:jiè::verzichten, warnen;劲:jìn / jìng:勁:Kraft, Energie;井:jǐng::Brunnen;颈:jǐng:頸:Nacken, Hals;径:jìng:徑:Pfad, Durchmesser;纠:jiū:糾:verwickeln, korrigieren;舅:jiù::Onkel mütterlicherseits;菊:jú::Chrysantheme;矩:jǔ::Winkelmaß, Regel;俱:jù::alle, zusammen;惧:jù:懼:fürchten;菌:jūn / jùn::Bakterie, Pilz;刊:kān::veröffentlichen;砍:kǎn::fällen, hacken;抗:kàng::widerstehen;枯:kū::verwelkt;酷:kù::grausam, cool;夸:kuā:誇:prahlen, loben;馈:kuì:饋:beschenken, Feedback;阔:kuò:闊:weit, reich;啦:la::Lautpartikel;赖:lài:賴:sich stützen auf, leugnen;兰:lán:蘭:Orchidee;拦:lán:攔:aufhalten;栏:lán:欄:Zaun, Spalte;烂:làn:爛:verfault, zerrissen;狼:láng::Wolf;廊:láng::Veranda, Galerie;朗:lǎng::hell, klar;牢:láo::Gefängnis, fest;雷:léi::Donner, Mine;粒:lì::Korn, ZEW Körnchen;怜:lián:憐:Mitleid haben;链:liàn:鏈:Kette;梁:liáng::Balken, Brücke;晾:liàng::trocknen an der Luft;劣:liè::minderwertig;淋:lín / lìn::durchnässen / filtern;笼:lóng / lǒng:籠:Käfig / einhüllen;露:lù / lòu::Tau / enthüllen;轮:lún:輪:Rad, Runde;履:lǚ::Schuh, erfüllen;略:lüè::weglassen, kurz;蚂:mǎ:螞:Ameise (蚂蚁);嘛:ma::Partikel des Offensichtlichen;埋:mái::begraben;迈:mài:邁:schreiten, Meile;麦:mài:麥:Weizen;盲:máng::blind;贸:mào:貿:Handel;眉:méi::Augenbraue;梅:méi::Pflaumenblüte;煤:méi::Kohle;弥:mí:彌:voll, ausfüllen;蜜:mì::Honig;棉:mián::Baumwolle;勉:miǎn::anspornen, mühsam;妙:miào::wunderbar, genial;灭:miè:滅:löschen, vernichten;摩:mó::reiben, massieren;寞:mò::einsam (寂寞);纳:nà:納:aufnehmen, zahlen;泥:ní::Schlamm, Lehm;拟:nǐ:擬:entwerfen, planen;扭:niǔ::drehen, verdrehen;怒:nù::Wut, Zorb;诺:nuò:諾:versprechen;盼:pàn::ersehnen;庞:páng:龐:riesig, Gesicht;抛:pāo::werfen, schleudern;泡:pào::Blase, einweichen;佩:pèi::tragen, bewundern;喷:pēn:噴:sprühen;捧:pěng::in beiden Händen halten;披:pī::umhängen;疲:pí::müde, erschöpft;飘:piāo:飄:wehen, schweben;贫:pín:貧:arm, Mangel;坡:pō::Hang, Abhang;迫:pò::drängen, zwingen;扑:pū:撲:stürzen auf, klopfen;朴:pǔ:樸:schlicht, einfach;铺:pū / pù:鋪:ausbreiten / Laden;欺:qī::betrügen, schikanieren;棋:qí::Schachspiel;旗:qí::Flagge, Fahne;启:qǐ:啓:öffnen, erleuchten;恰:qià::passend, gerade;牵:qiān:牽:führen an der Hand;谦:qiān:謙:bescheiden;潜:qián:潛:tauchen, verborgen;枪:qiāng:槍:Gewehr, Waffe;腔:qiāng::Hohlraum, Tonfall;瞧:qiáo::schauen, ansehen;倾:qīng:傾:neigen, schütten;屈:qū::beugen, Unrecht;渠:qú::Kanal, Graben;娶:qǔ::heiraten (Mann);圈:quān / juàn::Kreis / Gehege;券:quàn::Gutschein, Ticket;壤:rǎng::Erde, Boden;绒:róng:絨:Samt, Daune;融:róng::schmelzen, Harmonie;柔:róu::weich, geschmeidig;撒:sā / sǎ::loslassen / streuen;塞:sāi / sài::stopfen / Pass;嗓:sǎng::Kehle, Stimme;丧:sàng / sāng:喪:verlieren / Trauer;杀:shā:殺:töten;刹:chà / shā::Augenblick / bremsen;鲨:shā:鯊:Hai (鲨鱼);筛:shāi:篩:sieben, filtern;闪:shǎn:閃:blitzen, ausweichen;尚:shàng::noch, hochachten;舌:shé::Zunge;射:shè::schießen, strahlen;涉:shè::waten, betreffen;审:shěn:審:untersuchen, richten;甥:shēng::Neffe;盛:shèng / chéng::prächtig / füllen;狮:shī:獅:Löwe;寿:shòu:壽:Langlebigkeit;薯:shǔ::Kartoffel, Knolle;竖:shù:豎:senkrecht, vertikal;漱:shù::spülen (Mund);衰:shuāi::nachlassen, welken;瞬:shùn::Augenzwinkern;艘:sōu::ZEW Schiffe;塔:tǎ::Pagode, Turm;踏:tà::treten auf, betreten;汰:tài::aussortieren;坛:tán:壇:Altar, Forum, Krug;探:tàn::erkunden, besuchen;碳:tàn::Kohlenstoff;烫:tàng:燙:heiß, bügeln;掏:tāo::herausziehen (Tasche);逃:táo::fliehen;淘:táo::waschen, aussieben;添:tiān::hinzufügen;田:tián::Feld, Acker;铜:tóng:銅:Kupfer, Bronze;筒:tǒng::Röhre, Zylinder;偷:tōu::stehlen, heimlich;透:tòu::durchdringen;徒:tú::Schüler, vergebens;吐:tù / tǔ::erbrechen / spucken;吞:tūn::verschlucken;托:tuō::stützen, anvertrauen;挖:wā::graben;娃:wá::Baby, Puppe;哇:wā::Babyweinen, Wow;歪:wāi::schief, krumm;顽:wán:頑:stur, ungezogen;亡:wáng::sterben, fliehen;王:wáng::König, Herrscher;委:wěi::beauftragen;谓:wèi:謂:sagen, bedeuten;沃:wò::fruchtbar;乌:wū:烏:schwarz, Krähe;晰:xī::klar, deutlich;媳:xí::Schwiegertochter;吓:xià:嚇:erschrecken;嫌:xián::missfallen, Verdacht;陷:xiàn::versinken, Falle;祥:xiáng::Glück, heilsam;宵:xiāo::Nacht (元宵);歇:xiē::ausruhen;谐:xié:諧:harmonisch, Humor;携:xié:攜:mitführen;械:xiè::Waffe, Werkzeug;薪:xīn::Brennholz, Gehalt;胸:xiōng::Brust;雄:xióng::männlich, heldenhaft;袖:xiù::Ärmel;叙:xù:敘:erzählen;蓄:xù::ansammeln, speichern;旋:xuán / xuàn::drehen, wirbeln;旬:xún::Zehn-Tage-Periode;循:xún::folgen, einhalten;讯:xùn:訊:Nachricht, verhören;讶:yà:訝:überrascht sein;淹:yān::ertrinken, überfluten;炎:yán::Hitze, Entzündung;艳:yàn:艷:prächtig, bunt;宴:yàn::Festmahl, Bankett;央:yāng::Mitte, bitten;仰:yǎng::aufblicken;氧:yǎng::Sauerstoff;痒:yǎng:癢:jucken;遥:yáo:遙:fern, weit;野:yě::wild, freies Feld;液:yè::Flüssigkeit;仪:yí:儀:Zeremonie, Instrument;蚁:yǐ:蟻:Ameise;异:yì:異:anders, fremd;抑:yì::unterdrücken, oder;疫:yì::Seuche, Epidemie;姻:yīn::Ehe, Heirat;隐:yǐn:隱:verborgen;英:yīng::Held, britisch;婴:yīng:嬰:Säugling;颖:yǐng:穎:klug, Spitze;涌:yǒng::hervorquellen;忧:yōu:憂:besorgt, Kummer;予:yǔ::geben, gewähren;浴:yù::baden;欲:yù::begehren, wollen;裕:yù::reichlich;誉:yù:譽:Ruhm, Ehre;援:yuán::unterstützen, retten;跃:yuè:躍:springen;晕:yūn / yùn:暈:schwindelig / Ohnmacht;匀:yún:勻:gleichmäßig;孕:yùn::schwanger;灾:zāi:災:Katastrophe, Unheil;遭:zāo::erleiden, treffen auf;噪:zào::Lärm machen;燥:zào::trocken, erhitzt;扎:zhā::stechen, binden;宅:zhái::Wohnhaus;粘:zhān / nián::kleben / klebrig;崭:zhǎn:嶄:brandneu;仗:zhàng::Schlacht, stützen auf;障:zhàng::Hindernis, Schranke;枕:zhěn::Kissen;镇:zhèn:鎮:Kleinstadt, beruhigen;睁:zhēng:睜:Augen öffnen;症:zhèng::Krankheitssymptom;枝:zhī::Zweig, Ast;脂:zhī::Fett;侄:zhí::Neffe;殖:zhí::fortpflanzen, kolonisieren;秩:zhì::Ordnung (秩序);肿:zhǒng:腫:geschwollen;州:zhōu::Präfektur, Bundesstaat;粥:zhōu::Reisbrei;骤:zhòu:驟:plötzlich, abrupt;珠:zhū::Perle, Kugel;株:zhū::Baumstumpf, ZEW Pflanze;诸:zhū:諸:alle, verschiedene;砖:zhuān:磚:Ziegelstein;妆:zhuāng:妝:Make-up, schminken;庄:zhuāng:莊:Dorf, feierlich;壮:zhuàng:壯:stark, kräftig;椎:zhuī::Wirbelknochen, Hammer;捉:zhuō::fangen, greifen;棕:zōng::braun, Palme;踪:zōng:蹤:Spur, Fährte;粽:zòng::Klebreis-Zongzi;奏:zòu::musizieren, berichten;祖:zǔ::Vorfahr, Großvater;钻:zuān / zuàn:鑽:bohren / Diamant;罪:zuì::Sünde, Verbrechen;";
+
+    (function unpackExtendedDictionary() {
+      const entries = HSK456_PACKED.split(';');
+      for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        if (!entry) continue;
+        const parts = entry.split(':');
+        if (parts.length >= 4) {
+          const char = parts[0];
+          const pinyin = parts[1];
+          const trad = parts[2] ? parts[2] : char;
+          const meaning = parts[3];
+          HANZI_DICT[char] = [pinyin, trad, meaning];
+        }
+      }
+    })();
+
+    function getHanziDetails(char) {
+      if (HANZI_DICT[char]) return HANZI_DICT[char];
+      return ["-", char, "HSK Schriftzeichen"];
+    }
+
+    function colorizePinyin(pinyinStr) {
+      if (!pinyinStr) return "-";
+      const tone1 = /[āēīōūǖĀĒĪŪǕ]/;
+      const tone2 = /[áéíóúǘÁÉÍÓÚǗ]/;
+      const tone3 = /[ǎěǐǒǔǚǍĚǏǑǓǙ]/;
+      const tone4 = /[àèìòùǜÀÈÌÒÙǛ]/;
+
+      return pinyinStr.split(/(\s+|\/)/).map(part => {
+        if (!part || /^\s+$/.test(part) || part === '/') return part;
+        let cls = 'tone-5';
+        if (tone1.test(part)) cls = 'tone-1';
+        else if (tone2.test(part)) cls = 'tone-2';
+        else if (tone3.test(part)) cls = 'tone-3';
+        else if (tone4.test(part)) cls = 'tone-4';
+        return `<span class="${cls}">${part}</span>`;
+      }).join('');
+    }
+
+    /* ==========================================================================
+       3. INTELLIGENTE PINYIN-SUCHE
+       ========================================================================== */
+    const TONE_CHAR_MAP = {
+      'ā':'a1','á':'a2','ǎ':'a3','à':'a4',
+      'ē':'e1','é':'e2','ě':'e3','è':'e4',
+      'ī':'i1','í':'i2','ǐ':'i3','ì':'i4',
+      'ō':'o1','ó':'o2','ǒ':'o3','ò':'o4',
+      'ū':'u1','ú':'u2','ǔ':'u3','ù':'u4',
+      'ǖ':'v1','ǘ':'v2','ǚ':'v3','ǜ':'v4','ü':'v5',
+      'Ā':'a1','Á':'a2','Ǎ':'a3','À':'a4',
+      'Ē':'e1','É':'e2','Ě':'e3','È':'e4',
+      'Ī':'i1','Í':'i2','Ǐ':'i3','Ì':'i4',
+      'Ō':'o1','Ó':'o2','Ǒ':'o3','Ò':'o4',
+      'Ū':'u1','Ú':'u2','Ǔ':'u3','Ù':'u4',
+      'Ǖ':'v1','Ǘ':'v2','Ǚ':'v3','Ǜ':'v4','Ü':'v5'
+    };
+
+    function getNumberedPinyinList(pinyinStr) {
+      if (!pinyinStr) return [];
+      const syllables = pinyinStr.split(/[\s/]+/).filter(Boolean);
+      const results = [];
+
+      syllables.forEach(s => {
+        let tone = 5;
+        let base = "";
+        for (const ch of s) {
+          if (TONE_CHAR_MAP[ch]) {
+            base += TONE_CHAR_MAP[ch][0];
+            tone = parseInt(TONE_CHAR_MAP[ch][1], 10);
+          } else {
+            base += ch.toLowerCase();
+          }
+        }
+        base = base.replace(/[^a-züv]/g, '');
+        if (base) {
+          results.push(`${base}${tone}`);
+          results.push(base);
+          if (base.includes('ü')) {
+            const vBase = base.replace(/ü/g, 'v');
+            results.push(`${vBase}${tone}`);
+            results.push(vBase);
+          }
+          if (base.includes('v')) {
+            const uBase = base.replace(/v/g, 'ü');
+            results.push(`${uBase}${tone}`);
+            results.push(uBase);
+          }
+        }
+      });
+      return results;
+    }
+
+    function matchesPinyinSearch(pinyinRaw, query) {
+      if (!pinyinRaw || !query) return false;
+      const cleanQ = query.trim().toLowerCase().replace(/u:/g, 'v').replace(/ü/g, 'v');
+      if (!cleanQ) return false;
+
+      if (pinyinRaw.toLowerCase().includes(cleanQ)) return true;
+
+      const numberedList = getNumberedPinyinList(pinyinRaw);
+      const hasToneDigit = /[1-5]/.test(cleanQ);
+
+      if (hasToneDigit) {
+        return numberedList.some(item => /[1-5]$/.test(item) && (item === cleanQ || item.startsWith(cleanQ)));
+      } else {
+        const baseItems = numberedList.filter(item => !/[1-5]$/.test(item));
+        return baseItems.some(base => base === cleanQ || base.startsWith(cleanQ));
+      }
+    }
+
+    /* ==========================================================================
+       4. STATUS & SPEICHERUNG
+       ========================================================================== */
+    let currentHskLevel = 1;
+    let currentFilter = 'all';
+    let currentViewMode = localStorage.getItem('hsk_grid_view_mode') || 'hanzi';
+    let searchQuery = '';
+    let isShuffled = false;
+    let shuffledList = [];
+    let isSelectionMode = false;
+    let selectedChars = new Set();
+    let activeModalChar = null;
+
+    let displayScript = localStorage.getItem('hsk_display_script') || 'simp';
+    let currentTheme = localStorage.getItem('hsk_theme') || 'light';
+    if (currentTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    let currentZoom = parseInt(localStorage.getItem('hsk_card_zoom') || '105', 10);
+
+    let fcList = [];
+    let fcIndex = 0;
+    let fcRevealed = false;
+
+    let modalWriter = null;
+    let fcWriter = null;
+
+    let userProgress = {};
+    try {
+      const stored = localStorage.getItem('hsk_progress_data_v2');
+      if (stored) userProgress = JSON.parse(stored);
+    } catch (e) {
+      console.warn("localStorage konnte nicht geladen werden", e);
+    }
+
+    function persistProgress() {
+      try {
+        localStorage.setItem('hsk_progress_data_v2', JSON.stringify(userProgress));
+      } catch (e) {}
+      updateHeaderStats();
+      updateLevelProgressBar();
+    }
+
+    /* ==========================================================================
+       5. INITIALISIERUNG
+       ========================================================================== */
+    document.addEventListener("DOMContentLoaded", () => {
+      initTabCounters();
+      initTabs();
+      initFilters();
+      initViewMode();
+      initSearch();
+      initShuffle();
+      initZoom();
+      initScriptToggle();
+      initThemeToggle();
+      initSelectionMode();
+      initModal();
+      initFlashcards();
+      initSyncBackup();
+      initKeyboardShortcuts();
+      initSwipeGestures();
+
+      renderCardGrid();
+      updateHeaderStats();
+      updateLevelProgressBar();
+    });
+
+    function initTabCounters() {
+      for (let lvl = 1; lvl <= 6; lvl++) {
+        const count = Array.from(HSK_CHARS[lvl] || "").length;
+        const el = document.querySelector(`.tab-cnt[data-lvl="${lvl}"]`);
+        if (el) el.textContent = count;
+      }
+    }
+
+    function initTabs() {
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentHskLevel = parseInt(tab.dataset.hsk, 10);
+          selectedChars.clear();
+
+          if (isShuffled) {
+            generateNewShuffle();
+          }
+
+          updateBatchBar();
+          renderCardGrid();
+          updateLevelProgressBar();
+        });
+      });
+    }
+
+    function initFilters() {
+      const btns = document.querySelectorAll('.f-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.dataset.filter;
+          renderCardGrid();
+        });
+      });
+    }
+
+    function initViewMode() {
+      const btns = document.querySelectorAll('.v-btn');
+      btns.forEach(btn => {
+        if (btn.dataset.mode === currentViewMode) {
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        }
+        btn.addEventListener('click', () => {
+          btns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentViewMode = btn.dataset.mode;
+          localStorage.setItem('hsk_grid_view_mode', currentViewMode);
+          renderCardGrid();
+        });
+      });
+    }
+
+    function initSearch() {
+      const input = document.getElementById('search-input');
+      input.addEventListener('input', (e) => {
+        searchQuery = e.target.value.trim().toLowerCase();
+        renderCardGrid();
+      });
+    }
+
+    function generateNewShuffle() {
+      const raw = Array.from(HSK_CHARS[currentHskLevel] || "");
+      for (let i = raw.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [raw[i], raw[j]] = [raw[j], raw[i]];
+      }
+      shuffledList = raw;
+    }
+
+    function initShuffle() {
+      const btn = document.getElementById('btn-shuffle');
+      const lbl = document.getElementById('lbl-shuffle');
+      const btnReset = document.getElementById('btn-reset-order');
+
+      btn.addEventListener('click', () => {
+        isShuffled = true;
+        generateNewShuffle();
+        btn.classList.add('active');
+        lbl.textContent = 'Neu mischen';
+        btnReset.style.display = 'inline-flex';
+        renderCardGrid();
+      });
+
+      btnReset.addEventListener('click', () => {
+        isShuffled = false;
+        shuffledList = [];
+        btn.classList.remove('active');
+        lbl.textContent = 'Mischen';
+        btnReset.style.display = 'none';
+        renderCardGrid();
+      });
+    }
+
+    function initZoom() {
+      const input = document.getElementById('zoom-input');
+      const range = document.getElementById('zoom-range');
+
+      const applyZoom = (val) => {
+        if (val < 60) val = 60;
+        if (val > 150) val = 150;
+        currentZoom = val;
+        input.value = val;
+        range.value = val;
+        document.documentElement.style.setProperty('--card-size', `${val}px`);
+        localStorage.setItem('hsk_card_zoom', val);
+      };
+
+      applyZoom(currentZoom);
+
+      range.addEventListener('input', (e) => applyZoom(parseInt(e.target.value, 10)));
+      input.addEventListener('change', (e) => {
+        let val = parseInt(e.target.value, 10);
+        if (isNaN(val)) val = 105;
+        applyZoom(val);
+      });
+    }
+
+    function initScriptToggle() {
+      const btn = document.getElementById('btn-toggle-script');
+      const lbl = document.getElementById('lbl-script');
+      lbl.textContent = displayScript === 'trad' ? '繁體' : '简体';
+
+      btn.addEventListener('click', () => {
+        displayScript = displayScript === 'simp' ? 'trad' : 'simp';
+        lbl.textContent = displayScript === 'trad' ? '繁體' : '简体';
+        localStorage.setItem('hsk_display_script', displayScript);
+        renderCardGrid();
+        if (activeModalChar) showDetailModal(activeModalChar);
+      });
+    }
+
+    function initThemeToggle() {
+      const btn = document.getElementById('btn-toggle-theme');
+      const icon = document.getElementById('theme-icon');
+      icon.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+
+      btn.addEventListener('click', () => {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        if (currentTheme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          icon.textContent = '☀️';
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+          icon.textContent = '🌙';
+        }
+        localStorage.setItem('hsk_theme', currentTheme);
+        if (activeModalChar) renderModalWriter(activeModalChar);
+      });
+    }
+
+    function initSelectionMode() {
+      const toggle = document.getElementById('toggle-select-mode');
+      toggle.addEventListener('click', () => {
+        isSelectionMode = !isSelectionMode;
+        document.body.classList.toggle('selection-active', isSelectionMode);
+        toggle.classList.toggle('active', isSelectionMode);
+
+        if (!isSelectionMode) {
+          selectedChars.clear();
+          updateBatchBar();
+          renderCardGrid();
+        }
+      });
+
+      document.getElementById('btn-batch-select-all').addEventListener('click', () => {
+        getVisibleCharacters().forEach(c => selectedChars.add(c));
+        updateBatchBar();
+        renderCardGrid();
+      });
+
+      document.getElementById('btn-batch-set-unlearned').addEventListener('click', () => applyBatchStatus('unlearned'));
+      document.getElementById('btn-batch-set-learning').addEventListener('click', () => applyBatchStatus('learning'));
+      document.getElementById('btn-batch-set-learned').addEventListener('click', () => applyBatchStatus('learned'));
+    }
+
+    function applyBatchStatus(status) {
+      if (selectedChars.size === 0) return;
+      selectedChars.forEach(char => {
+        if (status === 'unlearned') delete userProgress[char];
+        else userProgress[char] = status;
+      });
+      persistProgress();
+      selectedChars.clear();
+      updateBatchBar();
+      renderCardGrid();
+    }
+
+    function updateBatchBar() {
+      const bar = document.getElementById('batch-action-bar');
+      document.getElementById('batch-selected-num').textContent = selectedChars.size;
+      bar.classList.toggle('visible', isSelectionMode && selectedChars.size > 0);
+    }
+
+    /* ==========================================================================
+       6. FILTER & RASTER-RENDERING
+       ========================================================================== */
+    function getVisibleCharacters() {
+      let chars = isShuffled && shuffledList.length > 0 
+        ? [...shuffledList] 
+        : Array.from(HSK_CHARS[currentHskLevel] || "");
+
+      chars = chars.filter(char => {
+        const state = userProgress[char] || 'unlearned';
+        if (currentFilter === 'all') return true;
+        return state === currentFilter;
+      });
+
+      if (searchQuery) {
+        chars = chars.filter(char => {
+          const info = getHanziDetails(char);
+          const pinyinRaw = info[0] || "";
+          const trad = (info[1] || "").toLowerCase();
+          const meaning = (info[2] || "").toLowerCase();
+
+          return char.includes(searchQuery) ||
+                 trad.includes(searchQuery) ||
+                 meaning.includes(searchQuery) ||
+                 matchesPinyinSearch(pinyinRaw, searchQuery);
+        });
+      }
+
+      return chars;
+    }
+
+    function renderCardGrid() {
+      const grid = document.getElementById('cards-grid');
+      grid.innerHTML = "";
+
+      const charsToDisplay = getVisibleCharacters();
+
+      charsToDisplay.forEach((char, idx) => {
+        const card = document.createElement('div');
+        const state = userProgress[char] || 'unlearned';
+        const info = getHanziDetails(char);
+        const charToShow = displayScript === 'trad' ? (info[1] || char) : char;
+
+        card.className = `card ${state === 'learning' ? 'status-learning' : state === 'learned' ? 'status-learned' : ''}`;
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', `${charToShow}, ${info[0]}, ${info[2]}`);
+        if (selectedChars.has(char)) card.classList.add('selected');
+
+        let innerContent = `
+          <span class="card-idx">${idx + 1}</span>
+          <span class="card-check"></span>
+          <span class="card-hanzi chinese-font">${charToShow}</span>
+        `;
+
+        if (currentViewMode === 'pinyin' || currentViewMode === 'full') {
+          innerContent += `<span class="card-pinyin-sub">${colorizePinyin(info[0])}</span>`;
+        }
+        if (currentViewMode === 'full') {
+          innerContent += `<span class="card-meaning-sub">${info[2]}</span>`;
+        }
+
+        card.innerHTML = innerContent;
+
+        const handleCardAction = () => {
+          if (isSelectionMode) {
+            if (selectedChars.has(char)) {
+              selectedChars.delete(char);
+              card.classList.remove('selected');
+            } else {
+              selectedChars.add(char);
+              card.classList.add('selected');
+            }
+            updateBatchBar();
+          } else {
+            showDetailModal(char);
+          }
+        };
+
+        card.addEventListener('click', handleCardAction);
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleCardAction();
+          }
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    /* ==========================================================================
+       7. DETAIL MODAL & STRICHFOLGE
+       ========================================================================== */
+    function initModal() {
+      const modal = document.getElementById('detail-modal');
+      const closeBtn = document.getElementById('modal-close-btn');
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      document.getElementById('btn-nav-prev').addEventListener('click', navigatePrevChar);
+      document.getElementById('btn-nav-next').addEventListener('click', navigateNextChar);
+
+      document.getElementById('btn-animate-modal').addEventListener('click', () => {
+        if (modalWriter) modalWriter.animateCharacter();
+      });
+
+      document.getElementById('m-set-unlearned').addEventListener('click', () => setModalStatus('unlearned'));
+      document.getElementById('m-set-learning').addEventListener('click', () => setModalStatus('learning'));
+      document.getElementById('m-set-learned').addEventListener('click', () => setModalStatus('learned'));
+    }
+
+    function closeModal() {
+      document.getElementById('detail-modal').classList.remove('open');
+      activeModalChar = null;
+      modalWriter = null;
+    }
+
+    function renderModalWriter(char) {
+      const target = document.getElementById('m-char-target');
+      target.innerHTML = "";
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+      if (typeof HanziWriter !== 'undefined') {
+        try {
+          modalWriter = HanziWriter.create('m-char-target', char, {
+            width: 130,
+            height: 130,
+            padding: 5,
+            showOutline: true,
+            strokeAnimationSpeed: 1.25,
+            delayBetweenStrokes: 120,
+            strokeColor: isDark ? '#f8fafc' : '#0f172a',
+            outlineColor: isDark ? '#334155' : '#cbd5e1',
+            radicalColor: '#6366f1'
+          });
+          modalWriter.animateCharacter();
+          return;
+        } catch(e) {}
+      }
+
+      target.innerHTML = `<span class="modal-fallback-hanzi chinese-font">${char}</span>`;
+    }
+
+    function showDetailModal(char) {
+      activeModalChar = char;
+      const modal = document.getElementById('detail-modal');
+      const info = getHanziDetails(char);
+
+      const mainChar = displayScript === 'trad' ? (info[1] || char) : char;
+      const altLabel = displayScript === 'trad' ? 'Vereinfacht (簡體)' : 'Traditionell (繁體)';
+      const altChar = displayScript === 'trad' ? char : (info[1] || char);
+
+      renderModalWriter(mainChar);
+
+      document.getElementById('m-pinyin').innerHTML = colorizePinyin(info[0]);
+      document.getElementById('lbl-alt-script').textContent = altLabel;
+      document.getElementById('m-trad').textContent = altChar;
+      document.getElementById('m-meaning').textContent = info[2];
+
+      updateModalPickButtons();
+      modal.classList.add('open');
+    }
+
+    function updateModalPickButtons() {
+      const state = userProgress[activeModalChar] || 'unlearned';
+      document.getElementById('m-set-unlearned').classList.toggle('active', state === 'unlearned');
+      document.getElementById('m-set-learning').classList.toggle('active', state === 'learning');
+      document.getElementById('m-set-learned').classList.toggle('active', state === 'learned');
+    }
+
+    function setModalStatus(status) {
+      if (!activeModalChar) return;
+      if (status === 'unlearned') delete userProgress[activeModalChar];
+      else userProgress[activeModalChar] = status;
+
+      persistProgress();
+      updateModalPickButtons();
+      renderCardGrid();
+    }
+
+    function navigatePrevChar() {
+      const list = getVisibleCharacters();
+      if (!list.length || !activeModalChar) return;
+      let idx = list.indexOf(activeModalChar);
+      idx = (idx - 1 + list.length) % list.length;
+      showDetailModal(list[idx]);
+    }
+
+    function navigateNextChar() {
+      const list = getVisibleCharacters();
+      if (!list.length || !activeModalChar) return;
+      let idx = list.indexOf(activeModalChar);
+      idx = (idx + 1) % list.length;
+      showDetailModal(list[idx]);
+    }
+
+    /* ==========================================================================
+       8. FLASHCARD LERNMODUS
+       ========================================================================== */
+    function initFlashcards() {
+      document.getElementById('btn-open-flashcards').addEventListener('click', startFlashcards);
+      document.getElementById('btn-close-flashcards').addEventListener('click', closeFlashcards);
+
+      const cardEl = document.getElementById('flashcard-element');
+      cardEl.addEventListener('click', (e) => {
+        if (!e.target.closest('#btn-animate-fc')) {
+          flipFlashcard();
+        }
+      });
+
+      document.getElementById('fc-btn-flip').addEventListener('click', flipFlashcard);
+
+      document.getElementById('btn-animate-fc').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (fcWriter) fcWriter.animateCharacter();
+      });
+
+      document.getElementById('fc-btn-failed').addEventListener('click', () => setCardStatusInFlashcards('learning'));
+      document.getElementById('fc-btn-passed').addEventListener('click', () => setCardStatusInFlashcards('learned'));
+
+      document.getElementById('fc-btn-next').addEventListener('click', navigateFcNext);
+      document.getElementById('fc-btn-prev').addEventListener('click', navigateFcPrev);
+    }
+
+    function startFlashcards() {
+      fcList = getVisibleCharacters();
+      if (fcList.length === 0) {
+        alert("Keine Zeichen in der aktuellen Auswahl vorhanden!");
+        return;
+      }
+      fcIndex = 0;
+      fcRevealed = false;
+      document.getElementById('flashcard-overlay').classList.add('open');
+      renderCurrentFlashcard();
+    }
+
+    function closeFlashcards() {
+      document.getElementById('flashcard-overlay').classList.remove('open');
+      renderCardGrid();
+    }
+
+    function renderCurrentFlashcard() {
+      if (fcIndex >= fcList.length) {
+        alert("Alle Karten dieser Runde erreicht!");
+        fcIndex = fcList.length - 1;
+      }
+
+      fcRevealed = false;
+      const cardEl = document.getElementById('flashcard-element');
+      cardEl.classList.remove('fc-revealed');
+
+      const char = fcList[fcIndex];
+      const info = getHanziDetails(char);
+
+      const mainChar = displayScript === 'trad' ? (info[1] || char) : char;
+      const altChar = displayScript === 'trad' ? `Vereinfacht: ${char}` : `Traditionell: ${info[1] || char}`;
+
+      document.getElementById('fc-counter').textContent = `Karte ${fcIndex + 1} / ${fcList.length}`;
+      document.getElementById('fc-pinyin').innerHTML = colorizePinyin(info[0]);
+      document.getElementById('fc-meaning').textContent = info[2];
+      document.getElementById('fc-alt').textContent = altChar;
+
+      updateFlashcardStatusVisuals(char);
+
+      document.getElementById('fc-btn-prev').disabled = (fcIndex === 0);
+      document.getElementById('fc-btn-next').disabled = (fcIndex === fcList.length - 1);
+
+      const target = document.getElementById('fc-char-target');
+      target.innerHTML = "";
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+      if (typeof HanziWriter !== 'undefined') {
+        try {
+          fcWriter = HanziWriter.create('fc-char-target', mainChar, {
+            width: 130,
+            height: 130,
+            padding: 5,
+            showOutline: true,
+            strokeAnimationSpeed: 1.25,
+            delayBetweenStrokes: 120,
+            strokeColor: isDark ? '#f8fafc' : '#0f172a',
+            outlineColor: isDark ? '#334155' : '#cbd5e1',
+            radicalColor: '#6366f1'
+          });
+        } catch(e) {
+          target.innerHTML = `<span class="modal-fallback-hanzi chinese-font">${mainChar}</span>`;
+        }
+      } else {
+        target.innerHTML = `<span class="modal-fallback-hanzi chinese-font">${mainChar}</span>`;
+      }
+    }
+
+    function updateFlashcardStatusVisuals(char) {
+      const state = userProgress[char] || 'unlearned';
+      const badge = document.getElementById('fc-status-badge');
+      const cardEl = document.getElementById('flashcard-element');
+      const btnFailed = document.getElementById('fc-btn-failed');
+      const btnPassed = document.getElementById('fc-btn-passed');
+
+      cardEl.classList.remove('status-learning', 'status-learned');
+      badge.classList.remove('status-learning', 'status-learned');
+      btnFailed.classList.remove('active-selected');
+      btnPassed.classList.remove('active-selected');
+
+      if (state === 'learning') {
+        badge.textContent = '🔵 Am Lernen';
+        badge.classList.add('status-learning');
+        cardEl.classList.add('status-learning');
+        btnFailed.classList.add('active-selected');
+      } else if (state === 'learned') {
+        badge.textContent = '🟢 Gelernt';
+        badge.classList.add('status-learned');
+        cardEl.classList.add('status-learned');
+        btnPassed.classList.add('active-selected');
+      } else {
+        badge.textContent = '⚪ Noch nicht gelernt';
+      }
+    }
+
+    function flipFlashcard() {
+      fcRevealed = !fcRevealed;
+      document.getElementById('flashcard-element').classList.toggle('fc-revealed', fcRevealed);
+      if (fcRevealed && fcWriter) {
+        fcWriter.animateCharacter();
+      }
+    }
+
+    function setCardStatusInFlashcards(status) {
+      if (fcIndex >= fcList.length) return;
+      const char = fcList[fcIndex];
+
+      userProgress[char] = status;
+      persistProgress();
+      updateFlashcardStatusVisuals(char);
+    }
+
+    function navigateFcNext() {
+      if (fcIndex < fcList.length - 1) {
+        fcIndex++;
+        renderCurrentFlashcard();
+      }
+    }
+
+    function navigateFcPrev() {
+      if (fcIndex > 0) {
+        fcIndex--;
+        renderCurrentFlashcard();
+      }
+    }
+
+    /* ==========================================================================
+       9. TASTATUR-SHORTCUTS
+       ========================================================================== */
+    function initKeyboardShortcuts() {
+      window.addEventListener('keydown', (e) => {
+        const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        if (activeTag === 'input' || activeTag === 'textarea') {
+          if (e.key === 'Escape') {
+            document.activeElement.blur();
+          }
+          return;
+        }
+
+        const isModalOpen = document.getElementById('detail-modal').classList.contains('open');
+        const isFcOpen = document.getElementById('flashcard-overlay').classList.contains('open');
+
+        if (isFcOpen) {
+          if (e.key === '1') {
+            e.preventDefault();
+            setCardStatusInFlashcards('learning');
+          } else if (e.key === '2') {
+            e.preventDefault();
+            setCardStatusInFlashcards('learned');
+          } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            navigateFcNext();
+          } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            navigateFcPrev();
+          } else if (e.key === ' ' || e.code === 'Space') {
+            e.preventDefault();
+            flipFlashcard();
+          } else if (e.key === 'Escape') {
+            closeFlashcards();
+          }
+          return;
+        }
+
+        if (isModalOpen) {
+          if (e.key === 'ArrowLeft') {
+            navigatePrevChar();
+          } else if (e.key === 'ArrowRight') {
+            navigateNextChar();
+          } else if (e.key === ' ' || e.code === 'Space') {
+            e.preventDefault();
+            if (modalWriter) modalWriter.animateCharacter();
+          } else if (e.key === '1') {
+            setModalStatus('unlearned');
+          } else if (e.key === '2') {
+            setModalStatus('learning');
+          } else if (e.key === '3') {
+            setModalStatus('learned');
+          } else if (e.key === 'Escape') {
+            closeModal();
+          }
+        }
+      });
+    }
+
+    /* ==========================================================================
+       10. TOUCH-WISCHGESTEN (SWIPE)
+       ========================================================================== */
+    function initSwipeGestures() {
+      const modalBox = document.querySelector('.modal-box');
+      let mStartX = 0;
+      let mStartY = 0;
+
+      modalBox.addEventListener('touchstart', (e) => {
+        mStartX = e.changedTouches[0].screenX;
+        mStartY = e.changedTouches[0].screenY;
+      }, { passive: true });
+
+      modalBox.addEventListener('touchend', (e) => {
+        const diffX = e.changedTouches[0].screenX - mStartX;
+        const diffY = e.changedTouches[0].screenY - mStartY;
+        if (Math.abs(diffX) > 50 && Math.abs(diffY) < 60) {
+          if (diffX < 0) navigateNextChar();
+          else navigatePrevChar();
+        }
+      }, { passive: true });
+
+      const fcCard = document.getElementById('flashcard-element');
+      let fcStartX = 0;
+      let fcStartY = 0;
+
+      fcCard.addEventListener('touchstart', (e) => {
+        fcStartX = e.changedTouches[0].screenX;
+        fcStartY = e.changedTouches[0].screenY;
+      }, { passive: true });
+
+      fcCard.addEventListener('touchend', (e) => {
+        const diffX = e.changedTouches[0].screenX - fcStartX;
+        const diffY = e.changedTouches[0].screenY - fcStartY;
+        if (Math.abs(diffX) > 60 && Math.abs(diffY) < 60) {
+          if (diffX < 0) {
+            navigateFcNext();
+          } else {
+            navigateFcPrev();
+          }
+        }
+      }, { passive: true });
+    }
+
+    /* ==========================================================================
+       11. STATISTIKEN & LEVEL-FORTSCHRITT
+       ========================================================================== */
+    function updateHeaderStats() {
+      let totalCount = 0;
+      let learningCount = 0;
+      let learnedCount = 0;
+
+      for (let lvl = 1; lvl <= 6; lvl++) {
+        const arr = Array.from(HSK_CHARS[lvl] || "");
+        totalCount += arr.length;
+        arr.forEach(c => {
+          const s = userProgress[c];
+          if (s === 'learning') learningCount++;
+          if (s === 'learned') learnedCount++;
+        });
+      }
+
+      const unlearnedCount = totalCount - learningCount - learnedCount;
+
+      document.getElementById('stat-total').textContent = totalCount;
+      document.getElementById('stat-unlearned').textContent = unlearnedCount;
+      document.getElementById('stat-learning').textContent = learningCount;
+      document.getElementById('stat-learned').textContent = learnedCount;
+    }
+
+    function updateLevelProgressBar() {
+      const arr = Array.from(HSK_CHARS[currentHskLevel] || "");
+      const total = arr.length;
+      let learned = 0;
+      let learning = 0;
+
+      arr.forEach(c => {
+        if (userProgress[c] === 'learned') learned++;
+        if (userProgress[c] === 'learning') learning++;
+      });
+
+      const unlearned = total - learned - learning;
+
+      const pctLearned = total > 0 ? Math.round((learned / total) * 100) : 0;
+      const pctLearning = total > 0 ? Math.round((learning / total) * 100) : 0;
+      const pctUnlearned = total > 0 ? Math.round((unlearned / total) * 100) : 0;
+
+      document.getElementById('lbl-level-title').textContent = `HSK ${currentHskLevel} Fortschritt (${total} Zeichen):`;
+
+      document.getElementById('lvl-unlearned-stat').textContent = `${unlearned} (${pctUnlearned}%)`;
+      document.getElementById('lvl-learning-stat').textContent = `${learning} (${pctLearning}%)`;
+      document.getElementById('lvl-learned-stat').textContent = `${learned} (${pctLearned}%)`;
+
+      document.getElementById('lvl-bar-unlearned').style.width = `${pctUnlearned}%`;
+      document.getElementById('lvl-bar-learning').style.width = `${pctLearning}%`;
+      document.getElementById('lvl-bar-learned').style.width = `${pctLearned}%`;
+    }
+
+    /* ==========================================================================
+       12. EXPORT & IMPORT (JSON BACKUP)
+       ========================================================================== */
+    function initSyncBackup() {
+      document.getElementById('btn-export').addEventListener('click', () => {
+        const backupPayload = {
+          app: "HSK-Master-Trainer-Pro",
+          version: 3.4,
+          exportDate: new Date().toISOString(),
+          totalEntries: Object.keys(userProgress).length,
+          data: userProgress
+        };
+        const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `hsk_backup_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      const fileInput = document.getElementById('file-import-input');
+      document.getElementById('btn-import').addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            let parsed = JSON.parse(ev.target.result);
+
+            let incomingMap = parsed;
+            if (parsed && typeof parsed === 'object') {
+              if (parsed.data && typeof parsed.data === 'object') incomingMap = parsed.data;
+              else if (parsed.progress && typeof parsed.progress === 'object') incomingMap = parsed.progress;
+              else if (parsed.userProgress && typeof parsed.userProgress === 'object') incomingMap = parsed.userProgress;
+            }
+
+            if (!incomingMap || typeof incomingMap !== 'object') throw new Error("Ungültiges Format");
+
+            let importedCount = 0;
+            for (const [rawChar, rawStatus] of Object.entries(incomingMap)) {
+              const char = String(rawChar).trim();
+              const status = String(rawStatus).trim().toLowerCase();
+
+              if (char.length > 0) {
+                if (status === 'learning' || status === 'learned') {
+                  userProgress[char] = status;
+                  importedCount++;
+                } else if (status === 'unlearned' || status === 'null' || status === 'undefined') {
+                  delete userProgress[char];
+                }
+              }
+            }
+
+            persistProgress();
+            renderCardGrid();
+            alert(`Erfolgreich importiert! (${importedCount} Zeichen aktualisiert)`);
+          } catch (err) {
+            alert("Die Datei konnte nicht gelesen werden. Bitte prüfen Sie, ob es eine gültige JSON-Datei ist.");
+          } finally {
+            fileInput.value = '';
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+  </script>
+</body>
+</html>
